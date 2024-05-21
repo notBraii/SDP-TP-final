@@ -1,27 +1,29 @@
-// PARALELIZAR LA ORDENACION POR MEZCLA DE UN VECTOR DE N ELEMENTOS
+
+// ORDENAR 2 VECTORES Y COMPARAR SI CONTIENEN LOS MISMOS ELEMENTOS
+// compilar con gcc -pthread secuencial.c -o secuencial -lm
 
 // Cabeceras
 #include <stdio.h>      // printf
 #include <stdlib.h>     // exit
 #include <sys/time.h>
 #include <stddef.h>
-#include <math.h>
+#include <math.h> 
 #include <time.h>       // random seed
 
+#define MIN(A, B) ((A) < (B) ? (A) : (B)) // macro numero minimo
 
 // Constantes
 // #define DEBUG
 // #define DEBUG2
- #define DISTINTO
 
 // Prototipos de funcion
-void verVector(int* v,int lengt);
 void extraerParams(int argc, char* argv[]);
 void inicializar();
-void ordenarIterativo(int*);
-void ordenarPar(int, int);
-//void combinar(int left, int medio, int right);
-void subordenar(int* vec,int offset , int L);
+void iterativeSort(int* vec, int Length);
+void mergeBlocks(int* vec, int indice, int blockSize, int* tempvec);
+void comparar();
+void check_ordenamiento();
+void verVector(int* v,int lengt);
 
 // Variables compartidas
 int N; //Tamaño del vector
@@ -29,6 +31,7 @@ int K; //Cantidad de errores
 int *V1; //Arreglo 1 con valores
 int *V2; //Arreglo 2 con valores
 int *Vtemp; //Arreglo temporal para ordenar
+int diferencia=0; // flag deteccion de diferencias
 
 double dwalltime(){
     double sec;
@@ -45,7 +48,7 @@ int main(int argc, char* argv[]){
     
     extraerParams(argc, argv);
 
-    V1 =  malloc(N * sizeof(int));
+    V1 = (int*) malloc(N * sizeof(int));
     V2 = (int*) malloc(N * sizeof(int));
 	  Vtemp = (int*) malloc(N * sizeof(int));
     
@@ -54,37 +57,19 @@ int main(int argc, char* argv[]){
     // mergesort iterativo (para evitar overhead de recursión)
     double t0 = dwalltime();
 
-    ordenarIterativo(V1);
-    ordenarIterativo(V2);
-    //comparar();
+
+    iterativeSort(V1,N);
+    iterativeSort(V2,N);
+    comparar();
     
-    printf("Para N=%d, mide %f segundos\n", N, dwalltime() - t0);
+    printf("Para N=%d, tiempo de ejecucion %f segundos\n", N, dwalltime() - t0);
 
-    // verifica si V1 esta ordenado de menor a mayor
-    for (i=0; i<N-1; i++){
-        if (V1[i] > V1[i+1]){
-           printf("Error: V1[%d] = %d es menor que V1[%d] = %d \n", i+1, V1[i+1], i, V1[i]);
-           break;
-        }
-        if (V2[i] > V2[i+1]){
-           printf("Error: V2[%d] = %d es menor que V2[%d] = %d \n", i+1, V2[i+1], i, V2[i]);
-           break;
-        }
-    }
-	
-  	//Comparar los 2 vectores
-  	for (i=0; i<N; i++){
-  		if(V1[i] != V2[i]){
-        	printf("Diferencia Encontrada: V1[%d] = %d es distinto de V2[%d] = %d \n", i, V1[i], i, V2[i]);
-      		break;
-      		
-        }
-    }
-  	if (i == N)
-		printf("El vector V1 contiene los mismos elementos de V2 \n");
-  	else
-      	printf("El vector V1 no contiene los mismos elementos de V2 \n");
+    check_ordenamiento();
 
+  	if (diferencia)
+      printf("\t - Hay diferencia entre los vectores \n");
+    else
+		  printf("\t - Los vectores son iguales \n");
   
   
     // liberar memoria
@@ -95,76 +80,76 @@ int main(int argc, char* argv[]){
     return 0;
 }
 
-// Implemento funciones
-static inline int min(int n1, int n2){
-    return (n1 < n2) ? n1 : n2;
-}
 
-void ordenarIterativo(int* vec){
-    int lengBloque, L, M, R;
-		int aux;
-    #ifdef DEBUG2
-            printf("- vector entrada sin ordenar \n\t");
-            verVector(vec,N);
-    #endif
-    // Ordenar pares
-    for (L=0; L < N; L+=2){ // recorre todo el vector de a pares
-        if(vec[L]>vec[L+1]){ //si la dupla no esta ordenada
-            aux = vec[L];
-            vec[L] = vec[L+1]; //permuta
-        		vec[L+1] = aux;
+void iterativeSort(int* vec, int Length) {
+
+  int indice;
+    // ordena los elementos de a pares
+    for (indice = 0; indice < Length - 1; indice += 2) {
+        if (vec[indice] > vec[indice + 1]) {
+            // Swap elements if the pair is not sorted
+            int temp = vec[indice];
+            vec[indice] = vec[indice + 1];
+            vec[indice + 1] = temp;
         }
     }
-    #ifdef DEBUG2
-            printf("\n- vector entrada ordenado pares \n\t");
-            verVector(vec,N);
-    #endif
 
-    // odena de a potencia de 2 a partir de bloques de 2, 4, 8, 16...
-    for (lengBloque=2; lengBloque <= N/2; lengBloque *= 2){
-        for (L=0; L < N-1; L += (lengBloque*2) ){
-          subordenar(vec,L,lengBloque);
-		}
+    // Merge increasingly larger blocks of elements
+    for (int blockSize = 2; blockSize <= Length / 2; blockSize *= 2) {
+        for (indice = 0; indice < Length - 1; indice += (blockSize * 2)) {
+            mergeBlocks(vec, indice, blockSize, Vtemp);
+        }
     }
-    #ifdef DEBUG2
-            printf("\n- vector totalmente ordenado \n\t");
-            verVector(vec,N);
-    #endif
 
 }
 
- // para dos segmentos ordenados de vector,de longitud L se mesclan
- // parametro vector utilizado, desplazamiento inicial, tamaño del bloque
- // se asumen ambos bloques identicos
- // se utiliza como memoria temporal Vtemp ( el segmento de memoria con mismos desplazamientos que Vector original)
-void subordenar(int* vec,int offset , int L){
-  int* vec1= vec+(offset);
-  int* vec2= vec+(offset+L);
-  int* Vpriv=Vtemp+(offset);
-  int indice1=0;
-  int indice2=0;
-  for(int u = 0; u < 2*L; u++){// recorro todos los datos, guardo ordenado en VecTemporal
-    if((indice1 < L) && (indice2 < L)){// si hay datos para comparar
-        if(vec1[indice1] < vec2[indice2])
-          Vpriv[u]= vec1[indice1++];//guarda el n° mas pequeño
-        else
-          Vpriv[u]= vec2[indice2++];//guarda el n° mas pequeño
-    }else{
-        if(indice1 < L)// si solo quedan datos del Vector1
-          Vpriv[u] = vec1[indice1++];//los guardo como vienen, porque el vector esta ordenado
-        else// si solo quedan datos del Vector2
-          Vpriv[u] = vec2[indice2++];////los guardo como vienen, porque el vector esta ordenado
+void mergeBlocks(int* vec, int offset, int blockSize, int* tempvec) {
+    // punteros
+    int* firstBlockPtr = vec + offset;
+    int* secondBlockPtr = vec + offset + blockSize;
+
+    tempvec = tempvec + offset; // muevo los punteros locales para trabajar en sona del vector correcta
+    vec = vec + offset;
+
+    // Indices para recorrer vectores
+    int firstBlockIndex = 0;
+    int secondBlockIndex = 0;
+    int tempIndex = 0;
+
+    // mientras ningun indice llegue al final / compara y guarda el menor
+    while (firstBlockIndex < blockSize && secondBlockIndex < blockSize) {
+        if (firstBlockPtr[firstBlockIndex] <= secondBlockPtr[secondBlockIndex]) {
+            tempvec[tempIndex++] = firstBlockPtr[firstBlockIndex++];
+        } else {
+            tempvec[tempIndex++] = secondBlockPtr[secondBlockIndex++];
+        }
     }
-  }
-  
-  for(int u = 0; u < 2*L; u++){// guardo el troso ordenado en el vector 1 (porque vec1 y vec2 pertenecen a memoria contigua)
-    vec1[u] = Vpriv[u];
-  }
-  #ifdef DEBUG
-    verVector(Vpriv,2*L);
-  #endif
+    while (firstBlockIndex < blockSize) {    // copia todos los elementos restantes del primer vector
+      tempvec[tempIndex++] = firstBlockPtr[firstBlockIndex++];
+    }
+    while (secondBlockIndex < blockSize) {    // copia todos los elementos restantes del segundo vector
+      tempvec[tempIndex++] = secondBlockPtr[secondBlockIndex++];
+    }
+
+    // copia los elementos ordenados al vector original
+    for (int i = 0; i < 2*blockSize; i++) {
+        vec[i] = tempvec[i];
+    }
+
 }
 
+void comparar(){
+    //Comparar los 2 vectores
+  	for (int i=0; i<N; i++){
+  		if(V1[i] != V2[i]){
+        #ifdef DEBUG
+          printf("Diferencia Encontrada: V1[%d] = %d es distinto de V2[%d] = %d \n", i, V1[i], i, V2[i]);
+        #endif
+        diferencia=1;
+        break;
+      }
+    }
+}
 
 void inicializar(){
     int i;
@@ -179,29 +164,48 @@ void inicializar(){
     }
 }
 
+void check_ordenamiento(){
+    // verifica si V1 y V2 esta ordenado de menor a mayor
+    for (int i=0; i<N-1; i++){
+        if (V1[i] > V1[i+1]){
+           printf("Error: V1[%d] = %d es menor que V1[%d] = %d \n", i+1, V1[i+1], i, V1[i]);
+           break;
+        }
+        if (V2[i] > V2[i+1]){
+           printf("Error: V2[%d] = %d es menor que V2[%d] = %d \n", i+1, V2[i+1], i, V2[i]);
+           break;
+        }
+    }
+	
+}
+
 void extraerParams(int argc, char* argv[]){
     if (argc < 2) {
-        printf("Debe especificar la potencia N (entre 1..31) \n");
+        printf("Debe especificar la potencia NN (entre 1..31) \n");
         printf("Debe especificar errores K \n");
         exit(1);
     }
 
     N = atoi(argv[1]);
 
-    if (N <= 0) {
+    if (N <= 1) {
         printf("N debe ser positivo\n");
         exit(2);
-    }
-  	if( N>=32){
-      	printf("debe ingresar la potencia de N<32\n");
-		exit(3);
-    }
+    }else
+    	if( N>=32){
+        printf("debe ingresar la potencia de N menor a 32");
+        exit(3);
+      }
   	N = pow(2,N);
     printf("\t - Tamaño del vector ingresado %d \n",N);
   	
   	if(argc==3){
       K = atoi(argv[2]);
-      printf("\t - %d errores insertados en vector 2\n",K);
+      if(K<0){
+        printf("K debe ser positivo\n");
+        exit(4);
+      }
+      printf("\t - %d errores insertados en vector 2 \n \n",K);
     }
 }
 
