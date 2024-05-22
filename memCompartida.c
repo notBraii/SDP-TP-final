@@ -1,6 +1,6 @@
 // PARALELIZAR LA ORDENACION POR MEZCLA DE 2 VECTORES DE N ELEMENTOS Y COMPARAR SI TIENEN LOS MISMOS ELEMENTOS
 //Compilar con:
-//      gcc -pthread –o memCompartida memCompartida.c -lm
+//      gcc -pthread -o memCompartida memCompartida.c -lm
 
 // Cabeceras
 #include <stdio.h>      // printf
@@ -23,10 +23,10 @@ void inicializar();
 void* ordenarIterativo(void* arg);
 void combinar(int left, int medio, int right); //mergeBlocks
 void comparar();
-void verificarOrden(); //checkOrdenamiento
+void check_ordenamiento();
 void verVector(int* v, int length); //iterativeSort
 
-void create_and_join(void *(*start_routine)(void *), int T);
+void create_and_join((void *)(*start_routine), int T);
 double dwalltime();
 
 // Variables compartidas
@@ -65,7 +65,7 @@ int main(int argc, char* argv[]){
     create_and_join(&ordenarIterativo, T);
 
     double t1 = dwalltime();
-    printf("Para N=%d, mide %f segundos\n", N, t1 - t0);
+    printf("Para N=%d, tardo %f segundos\n", N, t1 - t0);
 
     // Verificar ordenacion (menor a mayor)
 
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]){
 
 
 //Crea los hilos y espera a que finalicen
-void create_and_join(void *(*start_routine)(void *), int T){
+void create_and_join((void *)(*start_routine), int T){
     pthread_t hilos[T];
     int ids[T];
     int i;
