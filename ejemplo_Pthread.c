@@ -12,6 +12,7 @@
 #include <time.h>       // random seed
 
 #define DEBUG
+#define CHECK
 
 
 // Macros
@@ -24,7 +25,7 @@ void iterativeSort(int* vec, int Length);
 void mergeBlocks(int* vec, int offset, int blockSize, int* tempvec);
 void comparar(int *Vec1, int *Vec2, int offset, int Length); // compara sub-vectores de parametro
 void verVector(int* v, int length); //funcion auxiliar para DEBUG
-void check_ordenamiento(int offset, int length); // funcion auxiliar para DEBUG
+void check_ordenamiento(int* vec, int offset,int length); // funcion auxiliar para DEBUG
 double dwalltime(); // tiempo de ejecucion
 void *taskThread(void *arg); // programa principal de cada Hilo
 
@@ -77,7 +78,8 @@ int main(int argc, char* argv[]){
         printf("\t - Hay diferencia entre los vectores \n");
     else
         printf("\t - Los vectores son iguales \n");
-    check_ordenamiento(0,N); // verifica que los Vectores esten bien ordenados
+    check_ordenamiento(V1, 0,N); // verifica que los Vectores esten bien ordenados
+    check_ordenamiento(V2, 0, N); // verifica que los Vectores esten bien ordenados
 
     pthread_barrier_destroy(&barrera);
     free(V1);
@@ -91,8 +93,10 @@ void *taskThread(void *arg) {
     int indice;
     int id = *((int*)arg);
 
-    iterativeSort(V1 + (id*N/T), N/T); // todos los hilos ordenan un segmento del vector
-
+    iterativeSort(V1 + (id*N/T), N/T ); // todos los hilos ordenan un segmento del vector
+#ifdef CHECK
+    check_ordenamiento(V1,id*N/T, N/T);// verifica que su porcion de vector este ordenado
+#endif
 
 #ifdef DEBUG
     pthread_barrier_wait(&barrera);
@@ -105,6 +109,9 @@ void *taskThread(void *arg) {
         if(id < TActivos){ //los nucleos activos (id<4) - ejecuta: T0,T1,T2,T3
        //     printf(" id:%d/%d -  offset:%d,blockZ:%d", id, TActivos,N*id/TActivos, N/(2*TActivos));
             mergeBlocks(V1, N*id/TActivos, N/(2*TActivos) , Vtemp);
+#ifdef CHECK
+            check_ordenamiento(N * id / TActivos, N / TActivos); // verifica que su porcion de vector este ordenado
+#endif
         }
 #ifdef DEBUG
         pthread_barrier_wait(&barrera);
@@ -244,22 +251,18 @@ void extraerParams(int argc, char* argv[]){
         printf("\t - %d errores insertados en vector 2 \n \n",K);
     }
     
+    
 }
 
-void check_ordenamiento(int offset,int length){ // parametros tipicos (id*N/T , N/T)
+
+void check_ordenamiento(int* vec, int offset,int length){ // parametros tipicos (id*N/T , N/T)
     int* vec1=V1+offset;
-    int* vec2=V2+offset;
     for (int i=0; i < length-1; i++){
         if (vec1[i] > vec1[i+1]){
-            printf("Error Ordenamiento: V1[%d]:%d < V1[%d]:%d \n", i+1, vec1[i+1], i, vec1[i]);
-            break;
-        }
-        if (vec2[i] > vec2[i+1]){
-            printf("Error Ordenamiento: V2[%d]:%d < V2[%d]:%d \n", i+1, vec2[i+1], i, vec2[i]);
+            printf("Error Ordenamiento: V[%d]:%d < V[%d]:%d \n", i+offset+1, vec1[i+1], i+offset, vec1[i]);
             break;
         }
     }
-
 }
 
 //Para calcular tiempo
