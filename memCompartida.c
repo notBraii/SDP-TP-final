@@ -2,9 +2,10 @@
 
 //En pthreads tenes que esperar
 //En MPI se esperan entre ellos (?
+//Utilizar GDB para debugger
 /*Compilar con:
 
-gcc -pthread -o memCompartida memCompartida.c -lm
+gcc -pthread -g -o memCompartida memCompartida.c -lm
 
 */
 // Cabeceras
@@ -14,14 +15,14 @@ gcc -pthread -o memCompartida memCompartida.c -lm
 #include <time.h>       // random seed
 #include <math.h>       // log2
 #include <sys/time.h>   // dwalltime
-//#include <stddef.h>     // NULL
+#include <stddef.h>     // NULL
 
 // Macros
 #define MIN(A, B) ((A) < (B) ? (A) : (B)) //Devuelve el mínimo
 
 // Constantes
 #define LONGITUD_SUBVECTOR(N,T) (N/T)
-// #define DEBUG
+#define DEBUG
 
 // Prototipos de funcion
 void extraerParams(int argc, char* argv[]);
@@ -29,8 +30,8 @@ void inicializar();
 
 void create_and_join(void *(*start_routine)(void *), int T);
 void* threadTask(void* arg);
-void ordenarVector(int * vec, int offset, int length, int id );
-void ordenar (int * vec, int length);
+void ordenarVector(int * vec, int * vtemp, int length, int id );
+void ordenar (int * vec, int * vtemp, int length);
 void combinar(int * vec, int offset, int blockSize, int * tempvec);
 
 void comparar(int offset, int length);
@@ -74,9 +75,9 @@ int main(int argc, char* argv[]){
     // mergesort iterativo (para evitar overhead de recursión)
     double t0 = dwalltime();
 
-    for (i=0; i<T; i++){
+    for (i = 0; i < T; i++){
         ids[i] = i;
-        pthread_create(&hilos[i], NULL, &threadTask, &ids[i]);
+        pthread_create(&hilos[i], NULL, threadTask, &ids[i]);
     }
 
     for (i=0; i<T; i++){
@@ -138,13 +139,13 @@ void* threadTask(void* arg){
     int length = LONGITUD_SUBVECTOR(N, T);
 
     #ifdef DEBUG
-        printf("Hilo %d, left %d, right %d \n", id, left, right);
+        printf("Hilo %d, size %d, offset %d \n", id, length, offset);
     #endif
     //Se ordena vector 1
-    ordenarVector(V1, offset, length, id);
+    ordenarVector(V1, Vtemp, length, id);
 
     //Se ordena vector 2
-    ordenarVector(V2, offset, length, id);
+    ordenarVector(V2, Vtemp, length, id);
 
 	//Compara los vectores V1 y V2 ordenados
 	comparar(offset, length);
@@ -154,21 +155,29 @@ void* threadTask(void* arg){
 }
 
 //Ordena el vector pasado por parámetro
-void ordenarVector(int * vec, int offset, int length, int id ){
+void ordenarVector(int * vec, int * vtemp, int length, int id ){
     
     int i, porciones;
-    
-    // Etapa 1: ordenación de la porción asignada
-    ordenar(vec + offset, length);
-    pthread_barrier_wait(&barrera);
+    const int offset = id * LONGITUD_SUBVECTOR(N, T);
 
+    // Etapa 1: ordenación de la porción asignada
+    ordenar(vec + offset, vtemp + offset , length);
+    #ifdef DEBUG
+        verVector(vec + offset, length);
+    #endif
+    pthread_barrier_wait(&barrera);
+    
     // Etapa 2: combinar de a pares
     for (i=1; i<=log2(T); i++){
         porciones = pow(2,i);
         
     	// Si mi id mod porciones es 0, trabajo
         if (id % porciones == 0){
-        	combinar(vec, offset, length * porciones, Vtemp);
+        	combinar(vec, offset, length * porciones, vtemp);
+            #ifdef DEBUG
+                printf("Hilo %d, size %d, offset %d \n", id, length*porciones, offset);
+                verVector(vec + offset, length*porciones);
+            #endif  
         }
     
 	    pthread_barrier_wait(&barrera);
@@ -179,8 +188,8 @@ void ordenarVector(int * vec, int offset, int length, int id ){
 }
 
 //Mergesort iterativo
-void ordenar(int * vec, int length){
-    
+void ordenar(int * vec, int * vtemp, int length){
+    //vec = vec + 
     int indice;
     // ordena los elementos de a pares
     for (indice = 0; indice < length - 1; indice += 2) {
@@ -195,7 +204,7 @@ void ordenar(int * vec, int length){
     // Combina incrementando en cada iteración la longitud del subvector
     for (int blockSize = 2; blockSize <= length / 2; blockSize *= 2) {
         for (indice = 0; indice < length - 1; indice += (blockSize * 2)) {
-            combinar(vec, indice, blockSize, Vtemp);
+            combinar(vec, indice, blockSize, vtemp);
         }
     }
     
@@ -389,4 +398,12 @@ void inicializar(){
     for(int j=0;j<K;j++){// inserta errores aleatorios en V2
       	V2[rand()%N] = rand() % 10000;
     }
+}
+
+//Ver vector
+void verVector(int* v,int length){
+  for(int u=0;u<length;u++){
+    printf("v[%d]:%d, \t",u,v[u]);
+  }
+  printf("\n\n");
 }
