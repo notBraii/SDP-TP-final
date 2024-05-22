@@ -11,6 +11,8 @@
 #include <math.h>       // log2
 #include <time.h>       // random seed
 
+#define DEBUG
+
 
 // Macros
 #define MIN(A, B) ((A) < (B) ? (A) : (B)) //Devuelve el mínimo
@@ -91,20 +93,32 @@ void *taskThread(void *arg) {
 
     iterativeSort(V1 + (id*N/T), N/T); // todos los hilos ordenan un segmento del vector
 
+
+#ifdef DEBUG
+    pthread_barrier_wait(&barrera);
+    if(id==0) verVector(V1,N); // vector ordenado de a segmentos
+#endif
+
     pthread_barrier_wait(&barrera);
 
-    for(indice=2;indice<=T;indice*=2){ // indice es proporcion de hilos activos por iteracion
+    for(int indice=2;indice<=T;indice*=2){ // indice es proporcion de hilos activos por iteracion
         if(id < T/indice){ //los nucleos activos son T/indice
-            mergeBlocks(V1, N*id*indice/T, N*indice/(2*T) , Vtemp); 
+            printf(" @%d$%d - ", id, indice);
+            mergeBlocks(V1, N*id*indice/T, N*indice/(2*T) , Vtemp);
         }
+#ifdef DEBUG
+        pthread_barrier_wait(&barrera);
+        if (id == 0)    verVector(V1, N); // vector ordenado de a segmentos dobles
+#endif
+
         pthread_barrier_wait(&barrera);
     }
 
-    iterativeSort(V2 + (id * N / T), N / T); // todos los hilos ordenan un segmento del vector
+    iterativeSort(V2+(id*N/T), N/T); // todos los hilos ordenan un segmento del vector
 
     pthread_barrier_wait(&barrera);
 
-    for (indice = 2; indice <= T; indice *= 2){ // indice es proporcion de hilos activos por iteracion
+    for (int indice = 2; indice <= T; indice *= 2){ // indice es proporcion de hilos activos por iteracion
         if (id < T / indice){ // los nucleos activos son T/indice
             mergeBlocks(V2, N*id*indice/T, N*indice/(2*T), Vtemp);
         }
