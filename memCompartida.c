@@ -1,5 +1,7 @@
 // PARALELIZAR LA ORDENACION POR MEZCLA DE 2 VECTORES DE N ELEMENTOS Y COMPARAR SI TIENEN LOS MISMOS ELEMENTOS
 
+//En pthreads tenes que esperar
+//En MPI se esperan entre ellos (?
 /*Compilar con:
 
 gcc -pthread –o memCompartida memCompartida.c -lm
@@ -27,14 +29,14 @@ void inicializar();
 
 void create_and_join(void *(*start_routine)(void *), int T);
 void* threadTask(void* arg);
-void ordenarVector(int * vec, int left, int right, int id );
-void ordenar (int * vec, int left, int right);
-void combinar(int * vec, int left, int medio, int right);
+void ordenarVector(int * vec, int offset, int length, int id );
+void ordenar (int * vec, int length);
+void combinar(int * vec, int offset, int blocksize, int * tempvec);
 
-void comparar();
+void comparar(int offset, int length);
 
 //Verificaciones
-void verificarOrden();
+void verificarOrden(int* vec, int offset,int length);
 void verVector(int* v, int length);
 
 double dwalltime(); //
@@ -47,7 +49,7 @@ int *V1; //Arreglo 1 con valores
 int *V2; //Arreglo 2 con valores
 int *Vtemp; //Arreglo temporal para ordenar
 int diferencia = 0; // flag deteccion de diferencias
-pthread_barrier_t* barreras;
+pthread_barrier_t* barrera;
 
 // Programa principal
 int main(int argc, char* argv[]){
@@ -55,25 +57,35 @@ int main(int argc, char* argv[]){
     
     extraerParams(argc, argv);
 
+    pthread_t hilos[T];
+    int ids[T];
+
     // Reserva de memoria
     V1 = (int*) malloc(N * sizeof(int));
     V2 = (int*) malloc(N * sizeof(int));
     Vtemp = (int*) malloc(N * sizeof(int));
-    barreras = (pthread_barrier_t*) malloc(T * sizeof(pthread_barrier_t));
+    barrera = (pthread_barrier_t*) malloc(sizeof(pthread_barrier_t));
     
-    // Si trabajan T, luego T/2, T/4... 1, son 2^T - 1 barreras
-    for (i=0; i<=log2(T); i++){
-        pthread_barrier_init(&barreras[i], NULL, T / pow(2,i));
-    } 
-
+	//Inicializa barrera   
+    pthread_barrier_init(&barrera, NULL, T );
+     
+	//Inicializa vectores V1 y V2
     inicializar();
 
     // mergesort iterativo (para evitar overhead de recursión)
     double t0 = dwalltime();
 
-    create_and_join(&threadTask, T);
+    for (i=0; i<T; i++){
+        ids[i] = i;
+        pthread_create(&hilos[i], NULL, &threadTask, &ids[i]);
+    }
 
-    comparar();
+    for (i=0; i<T; i++){
+        pthread_join(hilos[i], NULL);
+    }
+
+//    create_and_join(&threadTask, T);
+
     double t1 = dwalltime();
     printf("Para N=%d, mide %f segundos\n", N, t1 - t0);
 
@@ -87,9 +99,8 @@ int main(int argc, char* argv[]){
     
 
     // liberar recursos
-    for (i=0; i<=log2(T); i++){
-        pthread_barrier_destroy(&barreras[i]);
-    }
+    pthread_barrier_destroy(&barrera);
+    
     free(barreras);
     free(V1);
     free(V2);
@@ -125,48 +136,72 @@ void create_and_join(void *(*start_routine)(void *), int T){
 void* threadTask(void* arg){
 
     const int id = *(int*) arg;
-    const int left = id * ELEMENTOS_POR_HILO(N, T);
-    int right = (id+1) * ELEMENTOS_POR_HILO(N, T) - 1;
+    const int offset = id * LONGITUD_SUBVECTOR(N, T);
+    int length = LONGITUD_SUBVECTOR(N, T);
 
     #ifdef DEBUG
         printf("Hilo %d, left %d, right %d \n", id, left, right);
     #endif
     //Se ordena vector 1
-    ordenarVector(V1, left, right, id);
+    ordenarVector(V1, offset, length, id);
 
     //Se ordena vector 2
-    ordenarVector(V2, left, right, id);
+    ordenarVector(V2, offset, length, id);
 
+	//Compara los vectores V1 y V2 ordenados
+	comparar(offset, length);
+	
+	//Finaliza hilo
     pthread_exit(NULL);
 }
 
 //Ordena el vector pasado por parámetro
-void ordenarVector(int * vec, int left, int right, int id ){
+void ordenarVector(int * vec, int offset, int length, int id ){
     
-    int i, medio, porciones;
+    int i, porciones;
     
     // Etapa 1: ordenación de la porción asignada
-    ordenar(vec, left, right);
-    pthread_barrier_wait(&barreras[0]);
+    ordenar(vec + offset, length);
+    pthread_barrier_wait(&barrera);
 
     // Etapa 2: combinar de a pares
     for (i=1; i<=log2(T); i++){
         porciones = pow(2,i);
-        if (id % porciones != 0) break;
-
-        // Me toca trabajar...
-        right = (id+porciones) * ELEMENTOS_POR_HILO(N, T) - 1;
-        medio = left + (right - left) / 2;
         
-        combinar(vec, left, medio, right);
-
-        pthread_barrier_wait(&barreras[i]); //por simplicidad no verifico i
+    	// Si mi id mod porciones es 0, trabajo
+        if (id % porciones == 0){
+        	combinar(vec, offset, length * porciones, Vtemp);
+        }
+    
+	    pthread_barrier_wait(&barrera); //por simplicidad no verifico i
     }
+    
+
 
 }
 
-//Mergesort recursivo
-void ordenar(int * vec, int left, int right){
+//Mergesort iterativo
+void ordenar(int * vec, int length){
+    
+    int indice;
+    // ordena los elementos de a pares
+    for (indice = 0; indice < length - 1; indice += 2) {
+        if (vec[indice] > vec[indice + 1]) {
+            // Intercambia elementos si el par no está ordenado
+            int temp = vec[indice];
+            vec[indice] = vec[indice + 1];
+            vec[indice + 1] = temp;
+        }
+    }
+
+    // Combina incrementando en cada iteración la longitud del subvector
+    for (int blockSize = 2; blockSize <= length / 2; blockSize *= 2) {
+        for (indice = 0; indice < length - 1; indice += (blockSize * 2)) {
+            combinar(vec, indice, blockSize, Vtemp);
+        }
+    }
+    
+    /*
     if (left >= right) return;
 
     // l = 2, r = 8 -> m = 2 + 3 = 5
@@ -181,11 +216,45 @@ void ordenar(int * vec, int left, int right){
 
     // combinar vectores ordenados
     combinar(vec, left, medio, right);
+    */
 }
 
-//Combina los subvectores que posee cada hilo (vectores temporales dinámicos)
-void combinar(int * vec, int left, int medio, int right){
-    int len1 = (medio - left) + 1;
+//Combina los subvectores que posee cada hilo (vectores temporal vTemp)
+void combinar(int * vec, int offset, int blocksize, int * tempvec){
+    
+     // punteros
+    int* firstBlockPtr = vec + offset;
+    int* secondBlockPtr = vec + offset + blockSize;
+
+    tempvec = tempvec + offset; // muevo los punteros locales para trabajar en sona del vector correcta
+    vec = vec + offset;
+
+    // Indices para recorrer vectores
+    int firstBlockIndex = 0;
+    int secondBlockIndex = 0;
+    int tempIndex = 0;
+
+    // mientras ningun indice llegue al final / compara y guarda el menor
+    while (firstBlockIndex < blockSize && secondBlockIndex < blockSize) {
+        if (firstBlockPtr[firstBlockIndex] <= secondBlockPtr[secondBlockIndex]) {
+            tempvec[tempIndex++] = firstBlockPtr[firstBlockIndex++];
+        } else {
+            tempvec[tempIndex++] = secondBlockPtr[secondBlockIndex++];
+        }
+    }
+    while (firstBlockIndex < blockSize) {    // copia todos los elementos restantes del primer vector
+      tempvec[tempIndex++] = firstBlockPtr[firstBlockIndex++];
+    }
+    while (secondBlockIndex < blockSize) {    // copia todos los elementos restantes del segundo vector
+      tempvec[tempIndex++] = secondBlockPtr[secondBlockIndex++];
+    }
+
+    // copia los elementos ordenados al vector original
+    for (int i = 0; i < 2*blockSize; i++) {
+        vec[i] = tempvec[i];
+    }
+    
+    /*int len1 = (medio - left) + 1;
     int len2 = (right - medio);
     int i = 0, j = 0, k;
 
@@ -217,9 +286,11 @@ void combinar(int * vec, int left, int medio, int right){
     // liberar memoria temporal
     free(L);
     free(R);
+    */
 }
 
 //Compara los vectores V1 y V2 (secuencial)
+/*
 void comparar(){
     //Comparar los 2 vectores
   	for (int i=0; i<N; i++){
@@ -232,6 +303,23 @@ void comparar(){
       }
     }
 }
+
+*/
+
+void comparar(int offset, int length){
+	vec1 = V1 + offset;
+	vec2 = V2 + offset;
+	for (int i=0; ((i<length) && (!diferencia)); i++){
+  		if(vec1[i] != vec2[i]){
+        #ifdef DEBUG
+        	printf("Diferencia Encontrada: V1[%d] = %d es distinto de V2[%d] = %d \n", i, V1[i], i, V2[i]);
+        #endif
+        	diferencia=1;
+        	break;
+      	}
+    }
+}
+
 
 // Carga las variables globales con valores pasados por parámetros
 void extraerParams(int argc, char* argv[]){
