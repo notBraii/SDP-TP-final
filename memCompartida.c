@@ -1,23 +1,31 @@
 // PARALELIZAR LA ORDENACION POR MEZCLA DE 2 VECTORES DE N ELEMENTOS Y COMPARAR SI TIENEN LOS MISMOS ELEMENTOS
 //Compilar con:
-//gcc -pthread –o memCompartida memCompartida.c
+//      gcc -pthread –o memCompartida memCompartida.c -lm
 
 // Cabeceras
 #include <stdio.h>      // printf
 #include <stdlib.h>     // exit
-#include <pthread.h>    //threads manage
+#include <pthread.h>    //manejo de threads
 #include <time.h>       // random seed
 #include <math.h>       // log2
 #include <sys/time.h>   // dwalltime
 //#include <stddef.h>     // NULL
+
+// Macros
+#define MIN(A, B) ((A) < (B) ? (A) : (B)) //Devuelve el mínimo
 
 // Constantes
 // #define DEBUG
 
 // Prototipos de funcion
 void extraerParams(int argc, char* argv[]);
-void combinar(int left, int medio, int right);
+void inicializar();
 void* ordenarIterativo(void* arg);
+void combinar(int left, int medio, int right); //mergeBlocks
+void comparar();
+void verificarOrden(); //checkOrdenamiento
+void verVector(int* v, int length); //iterativeSort
+
 void create_and_join(void *(*start_routine)(void *), int T);
 double dwalltime();
 
@@ -29,22 +37,27 @@ int K; //Cantidad de errores
 int *V1; //Arreglo 1 con valores
 int *V2; //Arreglo 2 con valores
 int *Vtemp; //Arreglo temporal para ordenar
-int diferencia=0; // flag deteccion de diferencias
+int diferencia = 0; // flag deteccion de diferencias
 
 // Programa principal
 int main(int argc, char* argv[]){
     int i;
     
+    
     extraerParams(argc, argv);
 
-    // N...
-    srand(time(NULL));
-    V1 = (int*) malloc(N * sizeof(double));
-    V2 = (int*) malloc(N * sizeof(double));
+    // Reserva de memoria
+    V1 = (int*) malloc(N * sizeof(int));
+    V2 = (int*) malloc(N * sizeof(int));
     Vtemp = (int*) malloc(N * sizeof(int));
+    barreras = (pthread_barrier_t*) malloc(T * sizeof(pthread_barrier_t));
+    
+    // Si trabajan T, luego T/2, T/4... 1, son 2^T - 1 barreras    barreras = (pthread_barrier_t* ) malloc((log2(T)+1) * sizeof(pthread_barrier_t));
+    for (i=0; i<=log2(T); i++){
+        pthread_barrier_init(&barreras[i], NULL, T / pow(2,i));
+    } 
 
-// Si trabajan T, luego T/2, T/4... 1, son 2^T - 1 barreras    barreras = (pthread_barrier_t* ) malloc((log2(T)+1) * sizeof(pthread_barrier_t));
-    for (i=0; i<=log2(T); i++) pthread_barrier_init(&barreras[i], NULL, T / pow(2,i));
+    inicializar();
 
     // mergesort iterativo (para evitar overhead de recursión)
     double t0 = dwalltime();
@@ -55,25 +68,18 @@ int main(int argc, char* argv[]){
     printf("Para N=%d, mide %f segundos\n", N, t1 - t0);
 
     // Verificar ordenacion (menor a mayor)
-    double ant = V[0];
-    double act;
-
-    for (i=1; i<N; i++){
-        act = V[i];
-        if (act < ant) printf("Error: V[%d] = %.2f es menor que V[%d] = %.2f \n", i, act, i-1, ant);
-        ant = act;
-    }
 
     // liberar recursos
     for (i=0; i<=log2(T); i++) pthread_barrier_destroy(&barreras[i]);
     free(barreras);
-    free(V);
-
+    free(V1);
+    free(V2);
+    free(Vtemp);
     return 0;
 }
 
 
-//Crear e insertar hilos a
+//Crea los hilos y espera a que finalicen
 void create_and_join(void *(*start_routine)(void *), int T){
     pthread_t hilos[T];
     int ids[T];
@@ -155,24 +161,52 @@ void combinar(int left, int medio, int right){
     free(R);
 }
 
+// Carga las variables globales con valores pasados por parámetros
 void extraerParams(int argc, char* argv[]){
+    K = 0;
     if (argc < 3) {
-        printf("Especificar N y T\n");
+        printf("Especificar al menos N y T\n");
         exit(1);
     }
-
+    
     N = atoi(argv[1]);
     T = atoi(argv[2]);
 
-    if (N < 1 || T < 1) {
+    if (N <= 1) {
         printf("N debe ser positivo\n");
         exit(2);
+    }else
+        if( N>=32){
+            printf("Debe ingresar la potencia de N menor a 32\n");
+            exit(3);
+        }
+    
+    
+    N = pow(2,N);
+
+    if (T < 1) {
+        printf("T debe ser positivo\n");
+        exit(2);
+    }
+    if (N % T != 0){
+        printf(" N debe ser multiplo de T\n");
+        exit(4);
     }
 
-    if (N % T != 0){
-        printf("Por favor, utilice N multiplo de T\n");
-        exit(3);
+    printf("\t - Tamaño del vector ingresado %d \n",N);
+    printf("\t - Cantidad de hilos: %d \n",T);
+    
+    if(argc == 4){
+        K = atoi(argv[3]);
+        if(K < 0){
+            printf("K debe ser positivo\n");
+            exit(2);
+        }
+
+        printf("\t - %d errores insertados en vector 2 \n \n",K);
     }
+    
+    
 }
 
 //Para calcular tiempo
@@ -185,6 +219,7 @@ double dwalltime(){
     return sec;
 }
 
+//Carga con valores aleatorios los vectores V1 y V2
 void inicializar(){
     int i;
 
