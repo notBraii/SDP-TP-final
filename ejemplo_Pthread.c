@@ -1,5 +1,6 @@
-// Ejemplo, se ejecutan T tareas, y cada tarea ordena un pedazo del cector V1 y V2 
-
+// Ejemplo, se ejecutan T tareas, y cada tarea ordena un pedazo del cector V1 y V2
+// compilar con 
+//      gcc -pthread ejemplo_Pthread.c -o a -lm
 
 // bibliotecas
 #include <stdio.h>      // printf
@@ -19,22 +20,22 @@ void extraerParams(int argc, char* argv[]);
 void inicializar();
 void iterativeSort(int* vec, int Length);
 void mergeBlocks(int* vec, int offset, int blockSize, int* tempvec);
-void comparar();
+void comparar(int *Vec1, int *Vec2, int offset, int Length); // compara sub-vectores de parametro
 void verVector(int* v, int length); //funcion auxiliar para DEBUG
-double dwalltime(); //tiempo de ejecucion
-void *taskThread(void *arg);
+void check_ordenamiento(); // funcion auxiliar para DEBUG
+double dwalltime(); // tiempo de ejecucion
+void *taskThread(void *arg); // programa principal de cada Hilo
 
 
 // Variables compartidas
-pthread_barrier_t *barreras;
+pthread_barrier_t barrera;
 int N; //Tamaño del vector
 int T; //Cantidad de hilos
 int K; //Cantidad de errores
 int *V1; //Arreglo 1 con valores
 int *V2; //Arreglo 2 con valores
 int *Vtemp; //Arreglo temporal para ordenar
-int diferencia = 0; // flag deteccion de diferencias
-
+int flag_diferencia = 0; // flag deteccion de diferencias
 
 int main(int argc, char* argv[]){
     
@@ -48,7 +49,8 @@ int main(int argc, char* argv[]){
     V1 = (int*) malloc(N * sizeof(int));
     V2 = (int*) malloc(N * sizeof(int));
     Vtemp = (int*) malloc(N * sizeof(int));
-    barreras = (pthread_barrier_t*) malloc(T * sizeof(pthread_barrier_t));
+
+    pthread_barrier_init(&barrera, NULL, T);//inicializa la barrera global
 
     inicializar();
 
@@ -68,26 +70,48 @@ int main(int argc, char* argv[]){
 
 
     printf("Para N:%d, T:%d , tardo %f segundos\n", N,T, dwalltime()- t0);
-    
 
+    if (flag_diferencia)
+        printf("\t - Hay diferencia entre los vectores \n");
+    else
+        printf("\t - Los vectores son iguales \n");
+    check_ordenamiento(); // verifica que los Vectores esten bien ordenados
+
+    pthread_barrier_destroy(&barrera);
     free(V1);
     free(V2);
     free(Vtemp);
-    free(barreras);
     return 0;
 }
 
 
 void *taskThread(void *arg) {
+    int indice;
     int id = *((int*)arg);
 
+    iterativeSort(V1 + (id*N/T), N/T); // todos los hilos ordenan un segmento del vector
 
-    iterativeSort(V1 + (id*N/T), N/T);
+    pthread_barrier_wait(&barrera);
 
-    printf("id:%d vector segmento %d, con cantidad de elementos %d \n ",id ,(id*N/T) , (N/T));
+    for(indice=2;indice<=T;indice*=2){ // indice es proporcion de hilos activos por iteracion
+        if(id < T/indice){ //los nucleos activos son T/indice
+            mergeBlocks(V1, N*id*indice/T, N*indice/(2*T) , Vtemp); 
+        }
+        pthread_barrier_wait(&barrera);
+    }
 
-    iterativeSort(V2 + (id*N/T), N/T);
-        
+    iterativeSort(V2 + (id * N / T), N / T); // todos los hilos ordenan un segmento del vector
+
+    pthread_barrier_wait(&barrera);
+
+    for (indice = 2; indice <= T; indice *= 2){ // indice es proporcion de hilos activos por iteracion
+        if (id < T / indice){ // los nucleos activos son T/indice
+            mergeBlocks(V2, N*id*indice/T, N*indice/(2*T), Vtemp);
+        }
+        pthread_barrier_wait(&barrera);
+    }
+
+    comparar(V1,V2, id*N/T, N/T); // todos los hilos comparan un pedazo de los vectores, y guardan resultado en flag_diferencia=1
 
     pthread_exit(NULL);
 }
@@ -148,18 +172,16 @@ void mergeBlocks(int* vec, int offset, int blockSize, int* tempvec) {
     }
 
 }
-void comparar(){
-    // Comparar los 2 vectores
+void comparar(int* Vec1, int* Vec2, int offset, int Length){
+    Vec1+=offset;
+    Vec2+=offset;
     for (int i = 0; i < N; i++){
-        if (V1[i] != V2[i]){
-        #ifdef DEBUG
-            printf("Diferencia Encontrada: V1[%d] = %d es distinto de V2[%d] = %d \n", i, V1[i], i, V2[i]);
-        #endif
-        diferencia = 1;
-        break;
+        if (Vec1[i] != Vec2[i]){
+            flag_diferencia = 1;
+            break;
         }
+        if(flag_diferencia!=0) break;
     }
-    
 }
 
 // Carga las variables globales con valores pasados por parámetros
@@ -211,7 +233,7 @@ void extraerParams(int argc, char* argv[]){
 
 void check_ordenamiento(){
     // verifica si V1 y V2 esta ordenado de menor a mayor
-    for (int i = 0; i < (N/T)-1; i++){
+    for (int i = 0; i < N-1; i++){
         if (V1[i] > V1[i + 1]){
             printf("Error: V1[%d] = %d es menor que V1[%d] = %d \n", i + 1, V1[i + 1], i, V1[i]);
             break;
@@ -222,10 +244,6 @@ void check_ordenamiento(){
         }
     }
 
-    if (diferencia)
-        printf("\t - Hay diferencia entre los vectores \n");
-    else
-        printf("\t - Los vectores son iguales \n");
 }
 
 //Para calcular tiempo
