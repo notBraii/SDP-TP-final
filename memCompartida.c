@@ -4,7 +4,7 @@
 //En MPI se esperan entre ellos (?
 /*Compilar con:
 
-gcc -pthread –o memCompartida memCompartida.c -lm
+gcc -pthread -o memCompartida memCompartida.c -lm
 
 */
 // Cabeceras
@@ -20,7 +20,7 @@ gcc -pthread –o memCompartida memCompartida.c -lm
 #define MIN(A, B) ((A) < (B) ? (A) : (B)) //Devuelve el mínimo
 
 // Constantes
-#define ELEMENTOS_POR_HILO(N,T) (N/T)
+#define LONGITUD_SUBVECTOR(N,T) (N/T)
 // #define DEBUG
 
 // Prototipos de funcion
@@ -31,7 +31,7 @@ void create_and_join(void *(*start_routine)(void *), int T);
 void* threadTask(void* arg);
 void ordenarVector(int * vec, int offset, int length, int id );
 void ordenar (int * vec, int length);
-void combinar(int * vec, int offset, int blocksize, int * tempvec);
+void combinar(int * vec, int offset, int blockSize, int * tempvec);
 
 void comparar(int offset, int length);
 
@@ -49,7 +49,7 @@ int *V1; //Arreglo 1 con valores
 int *V2; //Arreglo 2 con valores
 int *Vtemp; //Arreglo temporal para ordenar
 int diferencia = 0; // flag deteccion de diferencias
-pthread_barrier_t* barrera;
+pthread_barrier_t barrera;
 
 // Programa principal
 int main(int argc, char* argv[]){
@@ -64,7 +64,6 @@ int main(int argc, char* argv[]){
     V1 = (int*) malloc(N * sizeof(int));
     V2 = (int*) malloc(N * sizeof(int));
     Vtemp = (int*) malloc(N * sizeof(int));
-    barrera = (pthread_barrier_t*) malloc(sizeof(pthread_barrier_t));
     
 	//Inicializa barrera   
     pthread_barrier_init(&barrera, NULL, T );
@@ -101,7 +100,6 @@ int main(int argc, char* argv[]){
     // liberar recursos
     pthread_barrier_destroy(&barrera);
     
-    free(barreras);
     free(V1);
     free(V2);
     free(Vtemp);
@@ -173,7 +171,7 @@ void ordenarVector(int * vec, int offset, int length, int id ){
         	combinar(vec, offset, length * porciones, Vtemp);
         }
     
-	    pthread_barrier_wait(&barrera); //por simplicidad no verifico i
+	    pthread_barrier_wait(&barrera);
     }
     
 
@@ -220,7 +218,7 @@ void ordenar(int * vec, int length){
 }
 
 //Combina los subvectores que posee cada hilo (vectores temporal vTemp)
-void combinar(int * vec, int offset, int blocksize, int * tempvec){
+void combinar(int * vec, int offset, int blockSize, int * tempvec){
     
      // punteros
     int* firstBlockPtr = vec + offset;
@@ -307,8 +305,8 @@ void comparar(){
 */
 
 void comparar(int offset, int length){
-	vec1 = V1 + offset;
-	vec2 = V2 + offset;
+	int* vec1 = V1 + offset;
+	int* vec2 = V2 + offset;
 	for (int i=0; ((i<length) && (!diferencia)); i++){
   		if(vec1[i] != vec2[i]){
         #ifdef DEBUG
