@@ -3,6 +3,7 @@
         "time.h": "c",
         "stdio.h": "c",
         "ordenar_secuencial.h": "c",
-        "check.h": "c"
+        "check.h": "c",
+        "stddef.h": "c"
     }
 }

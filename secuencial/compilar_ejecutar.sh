@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # compilar proyecto
-gcc -pthread -o secuencial secuencial.c simple_init.c check.c ordenar_secuencial.c -lm 
+gcc -o secuencial secuencial.c simple_init.c check.c ordenar_secuencial.c -lm 
 
 # Nombre del archivo ejecutable
 ejecutable="./secuencial"

@@ -9,6 +9,7 @@
 #include <time.h>   // random seed
 #include <math.h>   // pow
 
+void extraerParamsNTK(int argc, char* argv[], int* N, int* T, int* K); //logica para obtener parametros y chequeos
 void extraerParams(int argc, char* argv[],int *N, int*K); //logica para obtener parametros y chequeos
 void inicializarVectors(int *vec1, int *vec2, int length, int Kdiference); // inicializa vectores
 double dwalltime(); // retorna el tiempo de ejecucion

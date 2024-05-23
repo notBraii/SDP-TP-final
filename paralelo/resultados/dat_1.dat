@@ -1,0 +1,6 @@
+	 - Tamaño del vector ingresado 1048576 
+	 - Cantidad de hilos: 1 
+	 - 0 errores insertados en vector 2 
+
+Para N:1048576, T:1 , tardo 0.520768 segundos
+	 - Los vectores son iguales 

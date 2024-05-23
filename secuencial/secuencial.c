@@ -1,7 +1,7 @@
 
 // ORDENAR 2 VECTORES Y COMPARAR SI CONTIENEN LOS MISMOS ELEMENTOS
 // compilar con
-//      gcc -pthread -o secuencial secuencial.c simple_init.c check.c ordenar_secuencial.c -lm
+//      gcc -o secuencial secuencial.c simple_init.c check.c ordenar_secuencial.c -lm
 // ejecutar (2^20 datos, 0 errores insertados) con
 //      ./secuencial 20 0
 

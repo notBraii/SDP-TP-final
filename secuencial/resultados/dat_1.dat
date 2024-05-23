@@ -1,0 +1,7 @@
+	 - Tamaño del vector ingresado 1048576 
+	 - 0 errores insertados en vector 2 
+ 
+Para N=1048576, tiempo de ejecucion 0.682437 segundos
+
+ check V1: 
+ check V2: 	 - Los vectores son iguales 

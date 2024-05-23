@@ -1,16 +1,17 @@
 #!/bin/bash
 
 # compilar proyecto
-gcc -pthread -o secuencial secuencial.c simple_init.c check.c ordenar_secuencial.c -lm 
+gcc -pthread -o paralelo paralelo.c simple_init.c check.c ordenar_secuencial.c -lm
 
 # Nombre del archivo ejecutable
-ejecutable="./secuencial"
+ejecutable="./paralelo"
 
 # Parámetros para cada ejecución
 parametros=(
-    "20 0"
-    "20 1"
-    "20 2"
+    "20 1 0"  # arreglo N:2^20 , hilos T:1 ; diferencias 0
+    "20 2 0"  # arreglo N:2^20 , hilos T:2 ; diferencias 0
+    "20 4 2"  # arreglo N:2^20 , hilos T:4 ; diferencias 2
+    "20 8 0"  # arreglo N:2^20 , hilos T:8 ; diferencias 0
 )
 
 # Nombre de la subcarpeta para los archivos .dat

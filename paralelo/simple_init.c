@@ -1,6 +1,43 @@
 
 #include "simple_init.h"
 
+void extraerParamsNTK(int argc, char *argv[], int *Nleng, int *Threads, int *Kdiferences){
+    *Kdiferences = 0;
+    if (argc < 3) {
+        printf("Especificar al menos N y T\n");
+        exit(1);
+    }
+
+    *Nleng = atoi(argv[1]);
+    *Threads = atoi(argv[2]);
+
+    if (*Nleng <= 1) {
+        printf("N debe ser positivo\n");exit(2);
+    }else if( *Nleng>=32){
+            printf("Debe ingresar la potencia de N menor a 32\n");exit(3);
+        }
+    
+    
+    *Nleng = pow(2,*Nleng);
+
+    if (*Threads < 1) {
+        printf("debe ejecutarse con almenos T=1 \n"); exit(2);
+    }
+    if (*Nleng % *Threads != 0){
+        printf(" N debe ser multiplo de T\n"); exit(4);
+    }
+
+    printf("\t - Tamaño del vector ingresado %d \n", *Nleng);
+    printf("\t - Cantidad de hilos: %d \n", *Threads);
+
+    if(argc == 4){
+        *Kdiferences = atoi(argv[3]);
+        if(*Kdiferences < 0){
+            printf("K debe ser positivo\n"); exit(2);
+        }
+        printf("\t - %d errores insertados en vector 2 \n\n", *Kdiferences);
+    }
+}
 
 void extraerParams(int argc, char* argv[],int *N, int*K){
     if (argc < 2) {
