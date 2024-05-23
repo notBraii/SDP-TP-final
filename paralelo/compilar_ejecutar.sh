@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # compilar proyecto
-gcc -pthread -o paralelo paralelo.c simple_init.c check.c ordenar_secuencial.c -lm
+gcc -pthread -o paralelo paralelo.c simple_init.c check.c ordenar_secuencial.c ordenar_paralelo.c -lm
 
 # Nombre del archivo ejecutable
 ejecutable="./paralelo"

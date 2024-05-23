@@ -4,6 +4,9 @@
         "stdio.h": "c",
         "ordenar_secuencial.h": "c",
         "check.h": "c",
-        "stddef.h": "c"
+        "stddef.h": "c",
+        "ordenar_paralelo.h": "c",
+        "simple_init.h": "c",
+        "pthread.h": "c"
     }
 }

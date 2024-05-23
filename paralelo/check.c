@@ -13,14 +13,15 @@ void verVector(int* vec,int length){
 
 // recibe el vector, el desplasamiento de la posicion inicial donde debe comparar, y la longitud
 // cuando encutra 2 valores que no estan ordenados de menor a mayor, imprime Error en consola
-void orderCheck(int* vec, int offset,int length){ // parametros tipicos (id*N/T , N/T)
+bool orderCheck(int* vec, int offset,int length){ // parametros tipicos (id*N/T , N/T)
     int* vec1=vec+offset;
     for (int i=0; i < length-1; i++){
         if (vec1[i] > vec1[i+1]){
             printf("Error Ordenamiento: V[%d]:%d < V[%d]:%d \n", i+offset+1, vec1[i+1], i+offset, vec1[i]);
-            break;
+            return false;
         }
     }
+    return true;
 }
 
 // compara que ambos vectores sean iguales ordenadamente
