@@ -11,7 +11,7 @@
 #include <math.h>       // log2
 #include <time.h>       // random seed
 
-#define DEBUG
+//#define DEBUG
 #define CHECK
 
 
@@ -21,7 +21,8 @@
 // Prototipos de funcion
 void extraerParams(int argc, char* argv[]);
 void inicializar();
-void iterativeSort(int* vec, int Length);
+void iterativeSort(int* vec, int Length, int* vecTemp);
+void mergeParalelo(int id, int* vec, int* vecTemp); // funcion principal de ordenar paralelo
 void mergeBlocks(int* vec, int offset, int blockSize, int* tempvec);
 void comparar(int *Vec1, int *Vec2, int offset, int Length); // compara sub-vectores de parametro
 void verVector(int* v, int length); //funcion auxiliar para DEBUG
@@ -78,8 +79,11 @@ int main(int argc, char* argv[]){
         printf("\t - Hay diferencia entre los vectores \n");
     else
         printf("\t - Los vectores son iguales \n");
-    check_ordenamiento(V1, 0,N); // verifica que los Vectores esten bien ordenados
-    check_ordenamiento(V2, 0, N); // verifica que los Vectores esten bien ordenados
+
+    #ifdef CHECK
+        printf("\n check V1: "); check_ordenamiento(V1, 0, N);
+        printf("\n check V2: "); check_ordenamiento(V2, 0, N);
+    #endif
 
     pthread_barrier_destroy(&barrera);
     free(V1);
@@ -93,80 +97,89 @@ void *taskThread(void *arg) {
     int indice;
     int id = *((int*)arg);
 
-    iterativeSort(V1 + (id*N/T), N/T ); // todos los hilos ordenan un segmento del vector
-#ifdef CHECK
-    check_ordenamiento(V1,id*N/T, N/T);// verifica que su porcion de vector este ordenado
-#endif
-
-#ifdef DEBUG
-    pthread_barrier_wait(&barrera);
-    if(id==0) verVector(V1,N); // vector ordenado de a segmentos
-#endif
-
-    pthread_barrier_wait(&barrera);
-
-    for(int TActivos=T/2;TActivos>=1;TActivos/=2){ // indice es cantidad de hilos con trabajo activo
-        if(id < TActivos){ //los nucleos activos (id<4) - ejecuta: T0,T1,T2,T3
-       //     printf(" id:%d/%d -  offset:%d,blockZ:%d", id, TActivos,N*id/TActivos, N/(2*TActivos));
-            mergeBlocks(V1, N*id/TActivos, N/(2*TActivos) , Vtemp);
-#ifdef CHECK
-            check_ordenamiento(N * id / TActivos, N / TActivos); // verifica que su porcion de vector este ordenado
-#endif
-        }
-#ifdef DEBUG
-        pthread_barrier_wait(&barrera);
-        if (id == -1)    verVector(V1, N); // vector ordenado de a segmentos dobles
-        printf(" \n --- \n");
-#endif
-
-        pthread_barrier_wait(&barrera);
-    }
-
-    iterativeSort(V2+(id*N/T), N/T); // todos los hilos ordenan un segmento del vector
-
-    pthread_barrier_wait(&barrera);
-
-    for (int indice = 2; indice <= T; indice *= 2){ // indice es proporcion de hilos activos por iteracion
-        if (id < T / indice){ // los nucleos activos son T/indice
-            mergeBlocks(V2, N*id*indice/T, N*indice/(2*T), Vtemp);
-        }
-        pthread_barrier_wait(&barrera);
-    }
+    mergeParalelo(id,V1,Vtemp);
+    mergeParalelo(id,V2,Vtemp);
 
     comparar(V1,V2, id*N/T, N/T); // todos los hilos comparan un pedazo de los vectores, y guardan resultado en flag_diferencia=1
 
     pthread_exit(NULL);
 }
 
-void iterativeSort(int* vec, int Length) {
+void mergeParalelo(int id, int* vec, int* vecTemp){
+
+    int offset=(id*N/T);
+
+// Etapa 1 - cada Hilo ordena 1 segmento del vector
+    iterativeSort(vec+offset, N/T , vecTemp+offset); // todos los hilos ordenan un segmento del vector
+#ifdef CHECK
+    printf("check %d/%d: ", id, T);
+    check_ordenamiento(vec, offset, N/T); // verifica que su porcion de vector este ordenado
+#endif
+
+#ifdef DEBUG
+    pthread_barrier_wait(&barrera);
+    if(id==0) verVector(vec,N); // vector ordenado de a segmentos
+#endif
+
+// Etapa 2 - enbudo de ordenamiento
+    pthread_barrier_wait(&barrera);
+    for(int TActivos=T/2;TActivos>=1;TActivos/=2){ // indice es cantidad de hilos con trabajo activo
+        if(id < TActivos){ //los nucleos activos (id<4) - ejecuta: T0,T1,T2,T3
+       //     printf(" id:%d/%d -  offset:%d,blockZ:%d", id, TActivos,N*id/TActivos, N/(2*TActivos));
+            offset=(id*N/TActivos);
+            mergeBlocks(vec, offset, N/(TActivos*2) , vecTemp);
+#ifdef CHECK
+            printf("check %d/%d: ", id, TActivos);
+            check_ordenamiento(vec, offset, N / TActivos); // verifica que su porcion de vector este ordenado
+#endif
+        }
+#ifdef DEBUG
+        pthread_barrier_wait(&barrera);
+        if (id == -1)    verVector(vec, N); // vector ordenado de a segmentos dobles
+        printf(" \n --- \n");
+#endif
+        pthread_barrier_wait(&barrera);
+    }
+
+}
+
+void iterativeSort(int* vec, int Length, int* vecTemp) {
 
   int indice;
     // ordena los elementos de a pares
     for (indice = 0; indice < Length - 1; indice += 2) {
         if (vec[indice] > vec[indice + 1]) {
             // Swap elements if the pair is not sorted
-            int temp = vec[indice];
+            vecTemp[0] = vec[indice];
             vec[indice] = vec[indice + 1];
-            vec[indice + 1] = temp;
+            vec[indice + 1] = vecTemp[0];
         }
     }
 
     // Merge increasingly larger blocks of elements
     for (int blockSize = 2; blockSize <= Length / 2; blockSize *= 2) {
         for (indice = 0; indice < Length - 1; indice += (blockSize * 2)) {
-            mergeBlocks(vec, indice, blockSize, Vtemp);
-        }
+            mergeBlocks(vec, indice, blockSize, vecTemp);
+            #ifdef CHECK
+              printf("check %d'%d - ",indice,2*blockSize);
+              check_ordenamiento(vec, indice, 2*blockSize); // chequeo que ese segmento este ordenado
+            #endif
+      }
+      #ifdef CHECK
+            printf("\n -\n ");
+      #endif
     }
 
 }
 
 void mergeBlocks(int* vec, int offset, int blockSize, int* tempvec) {
     // punteros
-    int* firstBlockPtr = vec + offset;
-    int* secondBlockPtr = vec + offset + blockSize;
+    vec = vec + offset;
+    int *firstBlockPtr = vec;
+    int* secondBlockPtr = vec + blockSize;
 
     tempvec = tempvec + offset; // muevo los punteros locales para trabajar en sona del vector correcta
-    vec = vec + offset;
+
 
     // Indices para recorrer vectores
     int firstBlockIndex = 0;
@@ -194,11 +207,26 @@ void mergeBlocks(int* vec, int offset, int blockSize, int* tempvec) {
     }
 
 }
+
+void check_ordenamiento(int* vec, int offset,int length){ // parametros tipicos (id*N/T , N/T)
+    int* vec1=vec+offset;
+    for (int i=0; i < length-1; i++){
+        if (vec1[i] > vec1[i+1]){
+            printf("Error Ordenamiento: V[%d]:%d < V[%d]:%d \n", i+offset+1, vec1[i+1], i+offset, vec1[i]);
+            break;
+        }
+    }
+}
+
+
 void comparar(int* Vec1, int* Vec2, int offset, int Length){
     Vec1+=offset;
     Vec2+=offset;
     for (int i = 0; i < N; i++){
         if (Vec1[i] != Vec2[i]){
+            #ifdef CHECK
+                printf("\n Diferencia encontrada en v1[%d]:%d != v2[%d]: %d \n ", i,Vec1[i],i,Vec2[i]);
+            #endif
             flag_diferencia = 1;
             break;
         }
@@ -254,16 +282,6 @@ void extraerParams(int argc, char* argv[]){
     
 }
 
-
-void check_ordenamiento(int* vec, int offset,int length){ // parametros tipicos (id*N/T , N/T)
-    int* vec1=V1+offset;
-    for (int i=0; i < length-1; i++){
-        if (vec1[i] > vec1[i+1]){
-            printf("Error Ordenamiento: V[%d]:%d < V[%d]:%d \n", i+offset+1, vec1[i+1], i+offset, vec1[i]);
-            break;
-        }
-    }
-}
 
 //Para calcular tiempo
 double dwalltime(){
