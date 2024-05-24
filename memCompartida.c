@@ -22,7 +22,7 @@ gcc -pthread -g -o memCompartida memCompartida.c -lm
 
 // Constantes
 #define LONGITUD_SUBVECTOR(N,T) (N/T)
-#define DEBUG
+//#define DEBUG
 
 // Prototipos de funcion
 void extraerParams(int argc, char* argv[]);
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]){
 	//Inicializa vectores V1 y V2
     inicializar();
 
-    // mergesort iterativo (para evitar overhead de recursión)
+    //Se guarda el tiempo inicial, se crean y ejecutan hasta que finalicen las tareas de los hilos
     double t0 = dwalltime();
 
     for (i = 0; i < T; i++){
@@ -84,19 +84,14 @@ int main(int argc, char* argv[]){
         pthread_join(hilos[i], NULL);
     }
 
-//    create_and_join(&threadTask, T);
-
     double t1 = dwalltime();
-    printf("Para N=%d, mide %f segundos\n", N, t1 - t0);
+    printf("Para N = %d, mide %f segundos\n", N, t1 - t0);
 
-    // Verificar ordenacion (menor a mayor)
-    
     //Imprimir resultado
     if (diferencia)
         printf("\t - Hay diferencia entre los vectores \n");
     else
 		printf("\t - Los vectores son iguales \n");
-    
 
     // liberar recursos
     pthread_barrier_destroy(&barrera);
@@ -107,30 +102,6 @@ int main(int argc, char* argv[]){
     return 0;
 }
 
-
-//Crea los hilos y espera a que finalicen
-void create_and_join(void *(*start_routine)(void *), int T){
-    pthread_t hilos[T];
-    int ids[T];
-    int i;
-
-    for (i=0; i<T; i++){
-        ids[i] = i;
-        pthread_create(&hilos[i], NULL, start_routine, &ids[i]);
-    }
-
-    for (i=0; i<T; i++){
-        pthread_join(hilos[i], NULL);
-    }
-}
-
-/*Pasos a realizar:
-    Primero se divide el vector en T partes
-    Cada hilo ordena completamente su porción asignada (T hilos trabajando)
-    Luego se combinan las porciones ordenadas de a pares (T/2 hilos trabajando)
-    Se repite lo anterior hasta ordenar el vector completo (1 hilo trabajando)
-*/
-
 //Tarea que realiza cada hilo
 void* threadTask(void* arg){
 
@@ -138,9 +109,6 @@ void* threadTask(void* arg){
     const int offset = id * LONGITUD_SUBVECTOR(N, T);
     int length = LONGITUD_SUBVECTOR(N, T);
 
-    #ifdef DEBUG
-        printf("Hilo %d, size %d, offset %d \n", id, length, offset);
-    #endif
     //Se ordena vector 1
     ordenarVector(V1, Vtemp, length, id);
 
@@ -160,26 +128,21 @@ void ordenarVector(int * vec, int * vtemp, int length, int id ){
     int i, porciones;
     const int offset = id * LONGITUD_SUBVECTOR(N, T);
 
-    // Etapa 1: ordenación de la porción asignada
+    //Se ordena la porción asignada del vector
     ordenar(vec + offset, vtemp + offset , length);
-    #ifdef DEBUG
-        verVector(vec + offset, length);
-    #endif
+
     pthread_barrier_wait(&barrera);
     
-    // Etapa 2: combinar de a pares
+    //Se combinan vectores contiguos
     for (i=1; i<=log2(T); i++){
         porciones = pow(2,i);
         
-    	// Si mi id mod porciones es 0, trabajo
+    //Si el id mod porciones es 0, el hilo trabaja
         if (id % porciones == 0){
         	combinar(vec, offset, length * porciones/2, vtemp);
-            #ifdef DEBUG
-                printf("Hilo %d, size %d, offset %d \n", id, length*porciones, offset);
-                verVector(vec + offset, length*porciones);
-            #endif  
         }
     
+    //Se espera a que todos los hilos terminen de trabajar para pasar al siguiente nivel
 	    pthread_barrier_wait(&barrera);
     }
     
@@ -209,7 +172,7 @@ void ordenar(int * vec, int * vtemp, int length){
     }
 }
 
-//Combina los subvectores que posee cada hilo (vectores temporal vTemp)
+//Combina los subvectores que posee cada hilo (vector temporal vTemp)
 void combinar(int * vec, int offset, int blockSize, int * tempvec){
     
      // punteros
@@ -224,7 +187,7 @@ void combinar(int * vec, int offset, int blockSize, int * tempvec){
     int secondBlockIndex = 0;
     int tempIndex = 0;
 
-    // mientras ningun indice llegue al final / compara y guarda el menor
+    // Mientras ningun indice llegue al final, compara y guarda el menor
     while (firstBlockIndex < blockSize && secondBlockIndex < blockSize) {
         if (firstBlockPtr[firstBlockIndex] <= secondBlockPtr[secondBlockIndex]) {
             tempvec[tempIndex++] = firstBlockPtr[firstBlockIndex++];
@@ -232,10 +195,12 @@ void combinar(int * vec, int offset, int blockSize, int * tempvec){
             tempvec[tempIndex++] = secondBlockPtr[secondBlockIndex++];
         }
     }
-    while (firstBlockIndex < blockSize) {    // copia todos los elementos restantes del primer vector
+    // Copia todos los elementos restantes del primer vector
+    while (firstBlockIndex < blockSize) {
       tempvec[tempIndex++] = firstBlockPtr[firstBlockIndex++];
     }
-    while (secondBlockIndex < blockSize) {    // copia todos los elementos restantes del segundo vector
+    // Copia todos los elementos restantes del segundo vector
+    while (secondBlockIndex < blockSize) {
       tempvec[tempIndex++] = secondBlockPtr[secondBlockIndex++];
     }
 
@@ -244,69 +209,26 @@ void combinar(int * vec, int offset, int blockSize, int * tempvec){
         vec[i] = tempvec[i];
     }
     
-    /*int len1 = (medio - left) + 1;
-    int len2 = (right - medio);
-    int i = 0, j = 0, k;
-
-    // crear arreglos temporales
-    double* L = (double*) malloc(len1 * sizeof(double));
-    double* R = (double*) malloc(len2 * sizeof(double));
-
-    // copiar datos
-    for (k=0; k<len1; k++){
-        L[k] = vec[left+k];
-    }
-    
-    for (k=0; k<len2; k++){
-        R[k] = vec[medio+k+1];
-    }
-
-    // realizar ordenacion por cada L[i] y R[j]
-    for (k=left; k<=right; k++){
-        if (i >= len1) vec[k] = R[j++];       // si se acabaron los de L, copiar los de R
-        else if (j >= len2) vec[k] = L[i++];  // si se acabaron los de R, copiar los de L
-        else if (L[i] < R[j]) vec[k] = L[i++];    // copiar el menor entre L y R
-        else vec[k] = R[j++];
-
-        #ifdef DEBUG
-            printf("vec[%d] = %.2f \n", k, vec[k]);
-        #endif
-    }
-
-    // liberar memoria temporal
-    free(L);
-    free(R);
-    */
 }
 
-//Compara los vectores V1 y V2 (secuencial)
-/*
-void comparar(){
-    //Comparar los 2 vectores
-  	for (int i=0; i<N; i++){
-  		if(V1[i] != V2[i]){
-        #ifdef DEBUG
-          printf("Diferencia Encontrada: V1[%d] = %d es distinto de V2[%d] = %d \n", i, V1[i], i, V2[i]);
-        #endif
-        diferencia=1;
-        break;
-      }
-    }
-}
-
-*/
-
+//Compara los vectores V1 y V2 globales, pasando por parámetro el inicio de la porción del vector y la longitud de dicho subvector
 void comparar(int offset, int length){
 	int* vec1 = V1 + offset;
 	int* vec2 = V2 + offset;
-	for (int i=0; ((i<length) && (!diferencia)); i++){
-  		if(vec1[i] != vec2[i]){
+    int i;
+    
+
+	for (i=0; ((i<length) && (!diferencia)); i++){
+       
+       if(vec1[i] != vec2[i]){
         #ifdef DEBUG
-        	printf("Diferencia Encontrada: V1[%d] = %d es distinto de V2[%d] = %d \n", i, V1[i], i, V2[i]);
+        	printf("Diferencia Encontrada: V1[%d] = %d es distinto de V2[%d] = %d \n", i + offset, vec1[i], i + offset, vec2[i]);
         #endif
-        	diferencia=1;
+        	diferencia = 1;
         	break;
       	}
+
+        
     }
 }
 
@@ -359,7 +281,7 @@ void extraerParams(int argc, char* argv[]){
     
 }
 
-//Para calcular tiempo
+//Calcula el tiempo
 double dwalltime(){
     double sec;
     struct timeval tv;
@@ -375,7 +297,7 @@ void inicializar(){
 
     srand(time(NULL));
     for (i=0; i<N; i++) {
-    	V1[i] = N - i; //rand() % 10000;
+    	V1[i] = rand() % 10000;
     	V2[i] = V1[i];
     }
     for(int j=0;j<K;j++){// inserta errores aleatorios en V2
