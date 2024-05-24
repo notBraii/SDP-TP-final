@@ -28,7 +28,7 @@ void orderCheck(int* vec, int offset,int length){ // parametros tipicos (id*N/T 
 void compararVec(int* vec1, int* vec2, int offset, int NLength, int* flag_diference){
   vec1+=offset;
   vec2+=offset;
-  for (int i=0; (i<NLength)&&(!flag_diference); i++){
+  for (int i=0; (i<NLength)&&(!(*flag_diference)); i++){
     if(vec1[i] != vec2[i]){
       *flag_diference = 1;
       break;

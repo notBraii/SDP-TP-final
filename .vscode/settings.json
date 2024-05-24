@@ -8,5 +8,6 @@
         "ordenar_paralelo.h": "c",
         "simple_init.h": "c",
         "pthread.h": "c"
-    }
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }
