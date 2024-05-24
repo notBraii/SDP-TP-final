@@ -14,9 +14,14 @@
 #include "simple_init.h"                  // extraerParamsNTK(), inicializarVectors(), dwalltime()
 #include "ordenar_paralelo.h"
 
-// variables compartidas dentro de :    ordenar_paralelo.h
-//      N, T, K, flag_diferencia
-//      V1, V2, Vtemp
+// Variables compartidas
+int N;                   // Tamaño del vector
+int T;                   // Cantidad de hilos
+int K;                   // Cantidad de errores
+int flag_diferencia = 0; // flag deteccion de diferencias
+int *V1;                 // Arreglo 1 con valores
+int *V2;                 // Arreglo 2 con valores
+int *Vtemp;              // Arreglo temporal para ordenar
 
 int main(int argc, char* argv[]){
 
@@ -27,23 +32,11 @@ int main(int argc, char* argv[]){
     V2 = (int*) malloc(N * sizeof(int));
     Vtemp = (int*) malloc(N * sizeof(int));
 
-    int ids[T];
-    pthread_t hilos[T];
-    pthread_barrier_init(&barrera, NULL, T);//inicializa la barrera global
 
     inicializarVectors(V1,V2,N,K);
     double t0 = dwalltime();
 
-    // Crear los hilos
-    for (int i = 0; i < T; i++) {
-        ids[i] = i;
-        pthread_create(&hilos[i], NULL, taskThread, &ids[i]); // manda a ejecutar tarea
-    }
-
-    // Esperar a que todos los hilos terminen
-    for (int i = 0; i < T; i++) {
-        pthread_join(hilos[i], NULL);
-    }
+    ordenar_paralelo(V1,V2,Vtemp,N,T,&flag_diferencia);
 
     // obtiene el tiempo de ejecucion de la tarea, y la imprime
     printf("Para N:%d, T:%d , tardo %f segundos\n", N,T, dwalltime()- t0);
@@ -56,7 +49,6 @@ int main(int argc, char* argv[]){
     printf("el Vector1: %s\n", orderCheck(V1, 0, N) ? "esta ordenado correctamente": " ");
     printf("el Vector2: %s\n", orderCheck(V2, 0, N) ? "esta ordenado correctamente": " ");
 
-    pthread_barrier_destroy(&barrera);
     free(V1);
     free(V2);
     free(Vtemp);
