@@ -40,10 +40,11 @@ int main(int argc, char* argv[]){
     iterativeSort(V2,Vtemp,NLength);
     compararVec(V1,V2,0,NLength,&diferencia);
 
-    printf("Para N=%d, tiempo de ejecucion %f segundos\n", NLength, dwalltime() - t0);
+    printf("Para N=%d, tiempo de ejecucion %f segundos \n \n", NLength, dwalltime() - t0);
 
-    printf("\n check V1: "); orderCheck(V1, 0, NLength);
-    printf("\n check V2: "); orderCheck(V2, 0, NLength);
+    // chequear ambos vectores
+    printf("- el Vector1: %s\n", orderCheck(V1,0,NLength) ? "esta ordenado correctamente" : " ");
+    printf("- el Vector2: %s\n", orderCheck(V2,0,NLength) ? "esta ordenado correctamente" : " ");
 
     if (diferencia)
       printf("\t - Hay diferencia entre los vectores \n");

@@ -1,7 +1,8 @@
 	 - Tamaño del vector ingresado 1048576 
 	 - 1 errores insertados en vector 2 
  
-Para N=1048576, tiempo de ejecucion 0.584679 segundos
-
- check V1: 
- check V2: 	 - Hay diferencia entre los vectores 
+Para N=1048576, tiempo de ejecucion 0.493574 segundos 
+ 
+- el Vector1: esta ordenado correctamente
+- el Vector2: esta ordenado correctamente
+	 - Hay diferencia entre los vectores 
