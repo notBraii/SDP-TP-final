@@ -10,7 +10,10 @@ ejecutable="./secuencial"
 parametros=(
     "20 0"
     "20 1"
-    "20 2"
+    "20 1000"
+    "21 0"
+    "21 1"
+    "21 1000"
 )
 
 # Nombre de la subcarpeta para los archivos .dat
@@ -24,8 +27,11 @@ num_ejecuciones=${#parametros[@]}
 
 # Loop para ejecutar el programa secuencial con diferentes parámetros
 for ((i=0; i<num_ejecuciones; i++)); do
+    # Obtener los parámetros y formar una cadena para incluirlos en el nombre del archivo
+    parametros_str=$(echo "${parametros[i]}" | tr ' ' '_')
+    
     # Nombre del archivo de salida
-    archivo_salida="$subcarpeta/dat_$((i+1)).dat"
+    archivo_salida="$subcarpeta/dat_${parametros_str}.dat"
 
     # Ejecutar el programa con los parámetros correspondientes y guardar la salida en la subcarpeta
     echo "Ejecutando $ejecutable con parámetros ${parametros[i]} y guardando salida en $archivo_salida"

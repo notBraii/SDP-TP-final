@@ -18,7 +18,7 @@ int Kdif; //Cantidad de diferencias insertadas
 int *V1; //Arreglo 1 con valores
 int *V2; //Arreglo 2 con valores
 int *Vtemp; //Arreglo temporal para ordenar
-int diferencia=0; // flag deteccion de diferencias
+int flag_diferencia=0; // flag deteccion de diferencias
 
 
 // Programa principal
@@ -38,18 +38,18 @@ int main(int argc, char* argv[]){
 
     iterativeSort(V1,Vtemp,NLength);
     iterativeSort(V2,Vtemp,NLength);
-    compararVec(V1,V2,0,NLength,&diferencia);
+    compararVec(V1,V2,0,NLength,&flag_diferencia);
 
     printf("Para N=%d, tiempo de ejecucion %f segundos \n \n", NLength, dwalltime() - t0);
+
+    if (flag_diferencia)
+      printf("\t - Hay diferencia entre los vectores \n");
+    else
+      printf("\t - Los vectores son iguales \n");
 
     // chequear ambos vectores
     printf("- el Vector1: %s\n", orderCheck(V1,0,NLength) ? "esta ordenado correctamente" : " ");
     printf("- el Vector2: %s\n", orderCheck(V2,0,NLength) ? "esta ordenado correctamente" : " ");
-
-    if (diferencia)
-      printf("\t - Hay diferencia entre los vectores \n");
-    else
-		  printf("\t - Los vectores son iguales \n");
   
   
     // liberar memoria
