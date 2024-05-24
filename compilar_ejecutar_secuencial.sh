@@ -1,21 +1,20 @@
 #!/bin/bash
 
 # compilar proyecto
-gcc -pthread -o paralelo paralelo.c simple_init.c check.c ordenar_secuencial.c ordenar_paralelo.c -lm
+#gcc -o secuencial secuencial.c simple_init.c check.c ordenar_secuencial.c -lm 
+gcc -o secuencial secuencial.c utils/simple_init.c utils/check.c utils/ordenar_secuencial.c -lm
 
 # Nombre del archivo ejecutable
-ejecutable="./paralelo"
+ejecutable="./secuencial"
 
 # Parámetros para cada ejecución
 parametros=(
-    "20 1 0"  # arreglo N:2^20 , hilos T:1 ; diferencias 0
-    "20 2 0"  # arreglo N:2^20 , hilos T:2 ; diferencias 0
-    "20 4 0"  # arreglo N:2^20 , hilos T:4 ; diferencias 0
-    "20 8 0"  # arreglo N:2^20 , hilos T:8 ; diferencias 0
-    "20 1 1"  # arreglo N:2^20 , hilos T:1 ; diferencias 1
-    "20 2 1"  # arreglo N:2^20 , hilos T:2 ; diferencias 1
-    "20 4 1"  # arreglo N:2^20 , hilos T:4 ; diferencias 1
-    "20 8 1"  # arreglo N:2^20 , hilos T:8 ; diferencias 1
+    "20 0"
+    "20 1"
+    "20 1000"
+    "21 0"
+    "21 1"
+    "21 1000"
 )
 
 # Nombre de la subcarpeta para los archivos .log
