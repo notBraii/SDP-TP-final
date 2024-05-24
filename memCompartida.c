@@ -173,7 +173,7 @@ void ordenarVector(int * vec, int * vtemp, int length, int id ){
         
     	// Si mi id mod porciones es 0, trabajo
         if (id % porciones == 0){
-        	combinar(vec, offset, length * porciones, vtemp);
+        	combinar(vec, offset, length * porciones/2, vtemp);
             #ifdef DEBUG
                 printf("Hilo %d, size %d, offset %d \n", id, length*porciones, offset);
                 verVector(vec + offset, length*porciones);
@@ -207,23 +207,6 @@ void ordenar(int * vec, int * vtemp, int length){
             combinar(vec, indice, blockSize, vtemp);
         }
     }
-    
-    /*
-    if (left >= right) return;
-
-    // l = 2, r = 8 -> m = 2 + 3 = 5
-    int len = right - left;
-    int medio = left + len / 2;
-
-    // ordenar parte izquierda (2 a 5)
-    ordenar(vec, left, medio);
-
-    // ordenar parte derecha (6 a 8)
-    ordenar(vec, medio+1, right);
-
-    // combinar vectores ordenados
-    combinar(vec, left, medio, right);
-    */
 }
 
 //Combina los subvectores que posee cada hilo (vectores temporal vTemp)
@@ -392,7 +375,7 @@ void inicializar(){
 
     srand(time(NULL));
     for (i=0; i<N; i++) {
-    	V1[i] = rand() % 10000;
+    	V1[i] = N - i; //rand() % 10000;
     	V2[i] = V1[i];
     }
     for(int j=0;j<K;j++){// inserta errores aleatorios en V2
