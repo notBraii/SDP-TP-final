@@ -16,7 +16,7 @@ parametros=(
     "21 1000"
 )
 
-# Nombre de la subcarpeta para los archivos .dat
+# Nombre de la subcarpeta para los archivos .log
 subcarpeta="resultados"
 
 # Crear la subcarpeta si no existe
@@ -31,7 +31,7 @@ for ((i=0; i<num_ejecuciones; i++)); do
     parametros_str=$(echo "${parametros[i]}" | tr ' ' '_')
     
     # Nombre del archivo de salida
-    archivo_salida="$subcarpeta/dat_${parametros_str}.dat"
+    archivo_salida="$subcarpeta/sec_${parametros_str}.log"
 
     # Ejecutar el programa con los parámetros correspondientes y guardar la salida en la subcarpeta
     echo "Ejecutando $ejecutable con parámetros ${parametros[i]} y guardando salida en $archivo_salida"

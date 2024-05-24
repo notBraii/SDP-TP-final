@@ -2,6 +2,15 @@
 
 #include "ordenar_paralelo.h"
 
+void ordenar_paralelo(){
+    for (int i = 0; i < T; i++) {   // Crear los hilos
+        ids[i] = i;
+        pthread_create(&hilos[i], NULL, taskThread, &ids[i]); // manda a ejecutar tarea
+    }
+    for (int i = 0; i < T; i++) {    // Esperar a que todos los hilos terminen
+        pthread_join(hilos[i], NULL);
+    }
+}
 
 void *taskThread(void *arg) {
     int indice;

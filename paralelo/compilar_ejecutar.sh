@@ -10,11 +10,15 @@ ejecutable="./paralelo"
 parametros=(
     "20 1 0"  # arreglo N:2^20 , hilos T:1 ; diferencias 0
     "20 2 0"  # arreglo N:2^20 , hilos T:2 ; diferencias 0
-    "20 4 2"  # arreglo N:2^20 , hilos T:4 ; diferencias 2
+    "20 4 0"  # arreglo N:2^20 , hilos T:4 ; diferencias 0
     "20 8 0"  # arreglo N:2^20 , hilos T:8 ; diferencias 0
+    "20 1 1"  # arreglo N:2^20 , hilos T:1 ; diferencias 1
+    "20 2 1"  # arreglo N:2^20 , hilos T:2 ; diferencias 1
+    "20 4 1"  # arreglo N:2^20 , hilos T:4 ; diferencias 1
+    "20 8 1"  # arreglo N:2^20 , hilos T:8 ; diferencias 1
 )
 
-# Nombre de la subcarpeta para los archivos .dat
+# Nombre de la subcarpeta para los archivos .log
 subcarpeta="resultados"
 
 # Crear la subcarpeta si no existe
@@ -25,8 +29,11 @@ num_ejecuciones=${#parametros[@]}
 
 # Loop para ejecutar el programa secuencial con diferentes parámetros
 for ((i=0; i<num_ejecuciones; i++)); do
+    # Obtener los parámetros y formar una cadena para incluirlos en el nombre del archivo
+    parametros_str=$(echo "${parametros[i]}" | tr ' ' '_')
+    
     # Nombre del archivo de salida
-    archivo_salida="$subcarpeta/dat_$((i+1)).dat"
+    archivo_salida="$subcarpeta/sec_${parametros_str}.log"
 
     # Ejecutar el programa con los parámetros correspondientes y guardar la salida en la subcarpeta
     echo "Ejecutando $ejecutable con parámetros ${parametros[i]} y guardando salida en $archivo_salida"
