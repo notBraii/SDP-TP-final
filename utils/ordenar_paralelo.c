@@ -47,28 +47,25 @@ void *taskThread(void *arg) {
 }
 
 void mergeParalelo(int id, int** ptrVec, int** ptrVecTemp){
+    int offsetID=OFFSET_N_ID_BY_THREAD;
 
 // Etapa 1 - cada Hilo ordena 1 segmento del vector
-    iterativeSortSwap(ptrVec,ptrVecTemp,OFFSET_N_ID_BY_THREAD , ELEMENTS_N_BY_THREAD );
+    iterativeSortSwap(ptrVec,ptrVecTemp,offsetID , ELEMENTS_N_BY_THREAD );
 
 // Etapa 2 - embudo de ordenamiento
     pthread_barrier_wait(&barrera);
 
-    int* vec= *ptrVec;// los vectores de trabajo
+    int* vec= *ptrVec;// los vectores de trabajo privados
     int* vecOut= *ptrVecTemp;
 
     //Se combinan vectores contiguos
     for (int porciones=2; porciones <= Thilos; porciones *= 2){
         if (id % porciones == 0){   //Si el id mod porciones es 0, el hilo trabaja
-            mergeBlocksToOut(vec, vecOut,OFFSET_N_ID_BY_THREAD, BLOCKSIZE_PORTION_BY_THREAD);
+            mergeBlocks(vec, vecOut,offsetID, BLOCKSIZE_PORTION_BY_THREAD);
         }
-        //Se espera a que todos los hilos terminen de trabajar para pasar al siguiente nivel
+            //Se espera a que todos los hilos terminen de trabajar para pasar al siguiente nivel
 	    pthread_barrier_wait(&barrera);
     }
-    if(id==0){// solo el proceso 0 actualiza los punteros del sistema
-        *ptrVec=vec;
-        *ptrVecTemp=vecOut;
-    }
-
+ 
 }
 
