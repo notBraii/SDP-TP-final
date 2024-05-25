@@ -1,7 +1,7 @@
-	 - Tamaño del vector ingresado 2097152 
+	 - Tamaño del vector ingresado 67108864 
 	 - 0 errores insertados en vector 2 
  
-Para N=2097152, tiempo de ejecucion 0.409193 segundos 
+Para N=67108864, tiempo de ejecucion 14.773036 segundos 
  
 	 - Los vectores son iguales 
 - el Vector1: esta ordenado correctamente
