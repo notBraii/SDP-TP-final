@@ -36,8 +36,8 @@ int main(int argc, char* argv[]){
     // mergesort iterativo (para evitar overhead de recursión)
     double t0 = dwalltime();
 
-    iterativeSort(V1,Vtemp,NLength);
-    iterativeSort(V2,Vtemp,NLength);
+    iterativeSortEficence(&V1,&Vtemp,NLength);
+    iterativeSortEficence(&V2,&Vtemp,NLength);
     compararVec(V1,V2,0,NLength,&flag_diferencia);
 
     printf("Para N=%d, tiempo de ejecucion %f segundos \n \n", NLength, dwalltime() - t0);

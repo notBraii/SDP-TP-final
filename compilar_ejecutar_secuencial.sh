@@ -9,12 +9,7 @@ ejecutable="./secuencial"
 
 # Parámetros para cada ejecución
 parametros=(
-    "20 0"
-    "20 1"
-    "20 1000"
-    "21 0"
-    "21 1"
-    "21 1000"
+    "25 0 EFICIENCE"
 )
 
 # Nombre de la subcarpeta para los archivos .log

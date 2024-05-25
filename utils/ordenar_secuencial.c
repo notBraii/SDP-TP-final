@@ -64,3 +64,64 @@ void mergeBlocks(int* vec, int* tempvec, int offset, int blockSize) {
     }
 
 }
+
+// funcion silimar al ordenar iterativo, pero opimiza en el copiado a memoria
+// cada paso de ordenacion, permuta los vectores ordenando y ordenado, para evitar copiar todos los datos
+void iterativeSortEficence(int** prtVec, int** ptrTempvec, int length) {
+    int temp;
+    int* vec= *prtVec;
+    int* vecOut=*ptrTempvec;// guardo sub-referencia
+    int* vect;
+
+    // ordena los elementos de a pares
+    for (int indice = 0; indice < length - 1; indice += 2) {
+        if (vec[indice] > vec[indice + 1]) {
+            // permuta los numeros que no estan ordenados de a pares
+            temp = vec[indice];
+            vec[indice] = vec[indice + 1];
+            vec[indice + 1] = temp;
+        }
+    }
+
+    // Merge increasingly larger blocks of elements
+    for (int blockSize = 2; blockSize <= length / 2; blockSize *= 2) {
+      for (int indice = 0; indice < length - 1; indice += (blockSize * 2)) {
+          mergeBlocksToOut(vec, vecOut, indice, blockSize);
+      }//por cada nivel de ordenacion
+          vect=vec;// permuta los punteros
+          vec=vecOut;
+          vecOut=vect;
+    }
+    // al finalizar el algoritmo, guarda el estado de los punteros de trabajo en los punteros de entrada
+    *prtVec=vec;
+    *ptrTempvec=vecOut;
+}
+
+void mergeBlocksToOut(int* vec, int* vecOut, int offset, int blockSize) {
+    // punteros
+    vec = vec + offset;
+    int *firstBlockPtr = vec;
+    int* secondBlockPtr = vec + blockSize;
+
+    vecOut = vecOut + offset; // muevo los punteros locales para trabajar en sona del vector correcta
+
+    // Indices para recorrer vectores
+    int firstBlockIndex = 0;
+    int secondBlockIndex = 0;
+    int tempIndex = 0;
+
+    // mientras ningun indice llegue al final / compara y guarda el menor
+    while (firstBlockIndex < blockSize && secondBlockIndex < blockSize) {
+        if (firstBlockPtr[firstBlockIndex] <= secondBlockPtr[secondBlockIndex]) {
+            vecOut[tempIndex++] = firstBlockPtr[firstBlockIndex++];
+        } else {
+            vecOut[tempIndex++] = secondBlockPtr[secondBlockIndex++];
+        }
+    }
+    while (firstBlockIndex < blockSize) {
+      vecOut[tempIndex++] = firstBlockPtr[firstBlockIndex++];
+    }
+    while (secondBlockIndex < blockSize) {
+      vecOut[tempIndex++] = secondBlockPtr[secondBlockIndex++];
+    }
+}
