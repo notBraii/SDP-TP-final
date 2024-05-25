@@ -15,9 +15,9 @@ void *taskThread(void *arg); // prototipo de funcion principal de cada hilo
 void mergeParalelo(int id, int** ptrVec, int** ptrVecTemp);
 
 
-void ordenar_paralelo(int **Vec_1, int **Vec_2, int *Vec_Temp, int N_long, int T_hilos, int* flag_diferencia){
+void ordenar_paralelo(int **Vec_1, int **Vec_2, int **Vec_Temp, int N_long, int T_hilos, int* flag_diferencia){
     // copio los valores al contexto de la libreria, con memoria compartida
-    Vec1=*Vec_1;  Vec2=*Vec_2;  VecTemp=Vec_Temp;    Nlong=N_long;    Thilos=T_hilos; flagDif=flag_diferencia;
+    Vec1=*Vec_1;  Vec2=*Vec_2;  VecTemp=*Vec_Temp;    Nlong=N_long;    Thilos=T_hilos; flagDif=flag_diferencia;
 
     int ids[Thilos];
     pthread_t hilos[Thilos];
@@ -36,6 +36,7 @@ void ordenar_paralelo(int **Vec_1, int **Vec_2, int *Vec_Temp, int N_long, int T
     //Se guardan los punteros ordenados en los vectores originales 
     *Vec_1=Vec1;  
     *Vec_2=Vec2;
+    *Vec_Temp=VecTemp;
 
 }
 

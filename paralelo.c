@@ -36,7 +36,7 @@ int main(int argc, char* argv[]){
     inicializarVectors(V1,V2,N,K);
     double t0 = dwalltime();
 
-    ordenar_paralelo(&V1,&V2,Vtemp,N,T,&flag_diferencia);
+    ordenar_paralelo(&V1,&V2,&Vtemp,N,T,&flag_diferencia);
 
     // obtiene el tiempo de ejecucion de la tarea, y la imprime
     printf("Para N:%d, T:%d , tardo %f segundos\n", N,T, dwalltime()- t0);
