@@ -1,0 +1,9 @@
+	 - Tamaño del vector ingresado 33554432 
+	 - Cantidad de hilos: 16 
+Para N:33554432, T:16 , tardo 1.691263 segundos
+
+ 	 - Hay diferencia entre los vectores 
+Error Ordenamiento: V[2097152]:0 < V[2097151]:9999 
+el Vector1:  
+Error Ordenamiento: V[2097152]:0 < V[2097151]:9999 
+el Vector2:  

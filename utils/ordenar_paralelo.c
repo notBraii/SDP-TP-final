@@ -12,7 +12,7 @@ int *flagDif;
 pthread_barrier_t barrera;
 
 void *taskThread(void *arg); // prototipo de funcion principal de cada hilo
-void mergeParalelo(int id, int* vec, int* vecTemp);
+void mergeParalelo(int id, int** ptrVec, int** ptrVecTemp);
 
 
 void ordenar_paralelo(int *Vec_1, int *Vec_2, int *Vec_Temp, int N_long, int T_hilos, int* flag_diferencia){
@@ -37,8 +37,8 @@ void ordenar_paralelo(int *Vec_1, int *Vec_2, int *Vec_Temp, int N_long, int T_h
 void *taskThread(void *arg) {
     int id = *((int*)arg);
 
-    mergeParalelo(id,Vec1,VecTemp);
-    mergeParalelo(id,Vec2,VecTemp);
+    mergeParalelo(id,&Vec1,&VecTemp);
+    mergeParalelo(id,&Vec2,&VecTemp);
 
 // todos los hilos comparan un pedazo de los vectores, y guardan resultado en flag_diferencia=1
     compararVec(Vec1,Vec2, OFFSET_N_ID_BY_THREAD, ELEMENTS_N_BY_THREAD,flagDif); 
@@ -46,24 +46,28 @@ void *taskThread(void *arg) {
     pthread_exit(NULL);
 }
 
-void mergeParalelo(int id, int* vec, int* vecTemp){
+void mergeParalelo(int id, int** ptrVec, int** ptrVecTemp){
 
 // Etapa 1 - cada Hilo ordena 1 segmento del vector
-    iterativeSort(vec + OFFSET_N_ID_BY_THREAD, vecTemp + OFFSET_N_ID_BY_THREAD, ELEMENTS_N_BY_THREAD );
+    iterativeSortSwap(ptrVec,ptrVecTemp,OFFSET_N_ID_BY_THREAD , ELEMENTS_N_BY_THREAD );
 
 // Etapa 2 - embudo de ordenamiento
     pthread_barrier_wait(&barrera);
 
-//Se combinan vectores contiguos
+    int* vec= *ptrVec;// los vectores de trabajo
+    int* vecOut= *ptrVecTemp;
+
+    //Se combinan vectores contiguos
     for (int porciones=2; porciones <= Thilos; porciones *= 2){
-        
-    //Si el id mod porciones es 0, el hilo trabaja
-        if (id % porciones == 0){
-            mergeBlocks(vec, vecTemp,OFFSET_N_ID_BY_THREAD, BLOCKSIZE_PORTION_BY_THREAD);
+        if (id % porciones == 0){   //Si el id mod porciones es 0, el hilo trabaja
+            mergeBlocksToOut(vec, vecOut,OFFSET_N_ID_BY_THREAD, BLOCKSIZE_PORTION_BY_THREAD);
         }
-    
-    //Se espera a que todos los hilos terminen de trabajar para pasar al siguiente nivel
+        //Se espera a que todos los hilos terminen de trabajar para pasar al siguiente nivel
 	    pthread_barrier_wait(&barrera);
+    }
+    if(id==0){// solo el proceso 0 actualiza los punteros del sistema
+        *ptrVec=vec;
+        *ptrVecTemp=vecOut;
     }
 
 }

@@ -8,14 +8,7 @@ ejecutable="./paralelo"
 
 # Parámetros para cada ejecución
 parametros=(
-    "20 1 0"  # arreglo N:2^20 , hilos T:1 ; diferencias 0
-    "20 2 0"  # arreglo N:2^20 , hilos T:2 ; diferencias 0
-    "20 4 0"  # arreglo N:2^20 , hilos T:4 ; diferencias 0
-    "20 8 0"  # arreglo N:2^20 , hilos T:8 ; diferencias 0
-    "20 1 1"  # arreglo N:2^20 , hilos T:1 ; diferencias 1
-    "20 2 1"  # arreglo N:2^20 , hilos T:2 ; diferencias 1
-    "20 4 1"  # arreglo N:2^20 , hilos T:4 ; diferencias 1
-    "20 8 1"  # arreglo N:2^20 , hilos T:8 ; diferencias 1
+    "25 16 0 swap"  # arreglo N:2^20 , hilos T:1 ; diferencias 0
 )
 
 # Nombre de la subcarpeta para los archivos .log

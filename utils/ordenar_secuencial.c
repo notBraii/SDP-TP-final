@@ -67,10 +67,10 @@ void mergeBlocks(int* vec, int* tempvec, int offset, int blockSize) {
 
 // funcion silimar al ordenar iterativo, pero opimiza en el copiado a memoria
 // cada paso de ordenacion, permuta los vectores ordenando y ordenado, para evitar copiar todos los datos
-void iterativeSortEficence(int** prtVec, int** ptrTempvec, int length) {
+void iterativeSortSwap(int** prtVec, int** ptrTempvec,int offset, int length) {
     int temp;
-    int* vec= *prtVec;
-    int* vecOut=*ptrTempvec;// guardo sub-referencia
+    int* vec= (*prtVec)+offset;
+    int* vecOut=(*ptrTempvec)+offset;// guardo sub-referencia
     int* vect;
 
     // ordena los elementos de a pares
@@ -93,8 +93,10 @@ void iterativeSortEficence(int** prtVec, int** ptrTempvec, int length) {
           vecOut=vect;
     }
     // al finalizar el algoritmo, guarda el estado de los punteros de trabajo en los punteros de entrada
-    *prtVec=vec;
-    *ptrTempvec=vecOut;
+    if(offset==0){
+      *prtVec=vec;
+      *ptrTempvec=vecOut;
+    }
 }
 
 void mergeBlocksToOut(int* vec, int* vecOut, int offset, int blockSize) {

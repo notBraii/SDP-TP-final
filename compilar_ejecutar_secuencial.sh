@@ -9,7 +9,7 @@ ejecutable="./secuencial"
 
 # Parámetros para cada ejecución
 parametros=(
-    "25 0 EFICIENCE"
+    "25 0 swap"
 )
 
 # Nombre de la subcarpeta para los archivos .log
