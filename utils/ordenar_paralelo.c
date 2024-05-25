@@ -61,11 +61,18 @@ void mergeParalelo(int id, int** ptrVec, int** ptrVecTemp){
     //Se combinan vectores contiguos
     for (int porciones=2; porciones <= Thilos; porciones *= 2){
         if (id % porciones == 0){   //Si el id mod porciones es 0, el hilo trabaja
-            mergeBlocks(vec, vecOut,offsetID, BLOCKSIZE_PORTION_BY_THREAD);
+            mergeBlocksToOut(vec, vecOut,offsetID, BLOCKSIZE_PORTION_BY_THREAD); //ordeno 1 nivel
+            int* vect=vecOut;// invierto los vectores de trabajo
+            vecOut=vec;
+            vec=vect;
         }
             //Se espera a que todos los hilos terminen de trabajar para pasar al siguiente nivel
 	    pthread_barrier_wait(&barrera);
     }
- 
+    if(id==0){
+        *ptrVec=vec;// guardo los vectores ordenados
+        *ptrVecTemp=vecOut;
+    }
+    pthread_barrier_wait(&barrera);
 }
 
