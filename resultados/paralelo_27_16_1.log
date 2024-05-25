@@ -2,10 +2,8 @@
 	 - Cantidad de hilos: 16 
 	 - 1 errores insertados en vector 2 
 
-Para N:134217728, T:16 , tardo 7.782088 segundos
+Para N:134217728, T:16 , tardo 7.779704 segundos
 
  	 - Hay diferencia entre los vectores 
-Error Ordenamiento: V[33554432]:0 < V[33554431]:9999 
-el Vector1:  
-Error Ordenamiento: V[33554432]:0 < V[33554431]:9999 
-el Vector2:  
+el Vector1: esta ordenado correctamente
+el Vector2: esta ordenado correctamente
