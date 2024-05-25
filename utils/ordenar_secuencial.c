@@ -82,15 +82,17 @@ void iterativeSortSwap(int** prtVec, int** ptrTempvec,int offset, int length) {
             vec[indice + 1] = temp;
         }
     }
-
-    // Merge increasingly larger blocks of elements
+    
+    //Mezcla incrementando la longitud de los bloques
     for (int blockSize = 2; blockSize <= length / 2; blockSize *= 2) {
-      for (int indice = 0; indice < length - 1; indice += (blockSize * 2)) {
-          mergeBlocksToOut(vec, vecOut, indice, blockSize);
-      }//por cada nivel de ordenacion
-          vect=vec;// permuta los punteros
-          vec=vecOut;
-          vecOut=vect;
+        for (int indice = 0; indice < length - 1; indice += (blockSize * 2)) {
+            mergeBlocksToOut(vec, vecOut, indice, blockSize);
+        }
+        
+        //por cada nivel de ordenacion permuta los punteros
+        vect=vec;
+        vec=vecOut;
+        vecOut=vect;
     }
     // al finalizar el algoritmo, guarda el estado de los punteros de trabajo en los punteros de entrada
     if(offset==0){

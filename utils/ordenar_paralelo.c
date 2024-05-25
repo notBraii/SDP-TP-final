@@ -15,9 +15,9 @@ void *taskThread(void *arg); // prototipo de funcion principal de cada hilo
 void mergeParalelo(int id, int** ptrVec, int** ptrVecTemp);
 
 
-void ordenar_paralelo(int *Vec_1, int *Vec_2, int *Vec_Temp, int N_long, int T_hilos, int* flag_diferencia){
+void ordenar_paralelo(int **Vec_1, int **Vec_2, int *Vec_Temp, int N_long, int T_hilos, int* flag_diferencia){
     // copio los valores al contexto de la libreria, con memoria compartida
-    Vec1=Vec_1;  Vec2=Vec_2;  VecTemp=Vec_Temp;    Nlong=N_long;    Thilos=T_hilos; flagDif=flag_diferencia;
+    Vec1=*Vec_1;  Vec2=*Vec_2;  VecTemp=Vec_Temp;    Nlong=N_long;    Thilos=T_hilos; flagDif=flag_diferencia;
 
     int ids[Thilos];
     pthread_t hilos[Thilos];
@@ -32,6 +32,11 @@ void ordenar_paralelo(int *Vec_1, int *Vec_2, int *Vec_Temp, int N_long, int T_h
         pthread_join(hilos[i], NULL);
     }
     pthread_barrier_destroy(&barrera);
+
+    //Se guardan los punteros ordenados en los vectores originales 
+    *Vec_1=Vec1;  
+    *Vec_2=Vec2;
+
 }
 
 void *taskThread(void *arg) {
@@ -60,7 +65,8 @@ void mergeParalelo(int id, int** ptrVec, int** ptrVecTemp){
 
     //Se combinan vectores contiguos
     for (int porciones=2; porciones <= Thilos; porciones *= 2){
-        if (id % porciones == 0){   //Si el id mod porciones es 0, el hilo trabaja
+        //Si el id mod porciones es 0, el hilo trabaja
+        if (id % porciones == 0){
             mergeBlocksToOut(vec, vecOut,offsetID, BLOCKSIZE_PORTION_BY_THREAD); //ordeno 1 nivel
             int* vect=vecOut;// invierto los vectores de trabajo
             vecOut=vec;
