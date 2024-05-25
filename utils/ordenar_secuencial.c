@@ -1,10 +1,10 @@
 
 #include "ordenar_secuencial.h"
 
-void iterativeSort(int* vec, int* tempvec, int Length) {
+void iterativeSort(int* vec, int* tempvec, int length) {
   int indice;
     // ordena los elementos de a pares
-    for (indice = 0; indice < Length - 1; indice += 2) {
+    for (indice = 0; indice < length - 1; indice += 2) {
         if (vec[indice] > vec[indice + 1]) {
             // permuta los numeros que no estan ordenados de a pares
             int temp = vec[indice];
@@ -14,8 +14,8 @@ void iterativeSort(int* vec, int* tempvec, int Length) {
     }
 
     // Merge increasingly larger blocks of elements
-    for (int blockSize = 2; blockSize <= Length / 2; blockSize *= 2) {
-        for (indice = 0; indice < Length - 1; indice += (blockSize * 2)) {
+    for (int blockSize = 2; blockSize <= length / 2; blockSize *= 2) {
+        for (indice = 0; indice < length - 1; indice += (blockSize * 2)) {
             mergeBlocks(vec, tempvec, indice, blockSize);
             #ifdef CHECK
               printf("check %d'%d - ",indice,2*blockSize);

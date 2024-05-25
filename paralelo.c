@@ -5,14 +5,14 @@
 //          a cada hilo T le toca ordenar un segmento del vector.
 //          luego algunos hilos van mesclando los resultados ordenados.
 // compilar con :
-//          gcc -pthread -o paralelo paralelo.c simple_init.c check.c ordenar_secuencial.c ordenar_paralelo.c -lm
+//          gcc -pthread -o paralelo paralelo.c utils/simple_init.c utils/check.c utils/ordenar_secuencial.c utils/ordenar_paralelo.c -lm
 // ejecutar (2^20 datos, 4 hilos, 0 errores insertados) con :
 //          ./paralelo 20 4 0
 
 
 // bibliotecas
-#include "simple_init.h"                  // extraerParamsNTK(), inicializarVectors(), dwalltime()
-#include "ordenar_paralelo.h"
+#include "utils/simple_init.h"                  // extraerParamsNTK(), inicializarVectors(), dwalltime()
+#include "utils/ordenar_paralelo.h"
 
 // Variables compartidas
 int N;                   // Tamaño del vector
