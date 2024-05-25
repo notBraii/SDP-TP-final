@@ -2,8 +2,8 @@
 
 #include "ordenar_paralelo.h"
 #define ELEMENTS_N_BY_THREAD (Nlong/Thilos)
-#define OFFSET_N_ID_BY_THREAD (id*Nlong/Thilos)
-#define BLOCKSIZE_PORTION_BY_THREAD ((Nlong* porciones)/(Thilos*2))
+#define OFFSET_N_ID_BY_THREAD ((Nlong/Thilos)*id)
+#define BLOCKSIZE_PORTION_BY_THREAD ((Nlong/(Thilos*2))* porciones)
 
 
 int *Vec1,*Vec2,*VecTemp; // copia de las variables del main
