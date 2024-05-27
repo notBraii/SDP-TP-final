@@ -1,6 +1,7 @@
 
 #include "simple_init.h"
 
+//Valida la cantidad de parámetros y modifica variables globales de N, T, K
 void extraerParamsNTK(int argc, char *argv[], int *Nleng, int *Threads, int *Kdiferences){
     *Kdiferences = 0;
     if (argc < 3) {
@@ -39,6 +40,7 @@ void extraerParamsNTK(int argc, char *argv[], int *Nleng, int *Threads, int *Kdi
     }
 }
 
+//Valida la cantidad de parámetros y modifica variables globales de N, K
 void extraerParams(int argc, char* argv[],int *N, int*K){
     if (argc < 2) {
         printf("Debe especificar la potencia NN (entre 1..31) \n");
@@ -61,7 +63,7 @@ void extraerParams(int argc, char* argv[],int *N, int*K){
     }
 }
 
-
+//Inicializa los vectores globales con valores aleatorios iguales en ambos vectores, agregando valores diferentes en posiciones aleatorias del vector 2 según el valor del parámetro K
 void inicializarVectors(int* vec1, int* vec2, int length, int Kdiference){
     srand(time(NULL));
     for (int i=0; i<length; i++) { // inicializa valores aleatorios
