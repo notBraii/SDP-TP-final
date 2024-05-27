@@ -1,13 +1,7 @@
 // bibliotecas
-//#include "utils/simple_init.h"                  // extraerParamsNTK(), inicializarVectors(), dwalltime()
-//#include "utils/ordenar_distribuido.h"
-#include <stdio.h> // printf
-#include <stdlib.h> // exit
-#include <stddef.h> // incluye NULL
-#include <sys/time.h> // tiempo
-#include <time.h>   // random seed
-#include <math.h>   // pow
-#include <mpi.h>
+#include "utils/simple_init.h"                  // extraerParamsNTK(), inicializarVectors(), dwalltime()
+#include "utils/ordenar_distribuido.h"
+
 
 #define MASTER 0
 // Variables
@@ -16,9 +10,7 @@ int N;                   // Tamaño del vector
 int T;                   // Cantidad de hilos
 int K;                   // Cantidad de errores
 int flag_diferencia = 0; // flag deteccion de diferencias
-int *V1;                 // Arreglo 1 con valores
-int *V2;                 // Arreglo 2 con valores
-int *Vtemp;              // Arreglo temporal para ordenar
+
 */
 
 //Prototipos
@@ -34,20 +26,24 @@ int main(int argc, char* argv[]){
     MPI_Comm_rank(MPI_COMM_WORLD, &miID);
     MPI_Comm_size(MPI_COMM_WORLD, &cantProcesos);
 
-    //Modificar extraer params para que se modifique parámetros por referencia, además de finalizar el MPI en caso de tirar error
     extraerParams(argc, argv, &N, &K);
 
     if(miID == MASTER){
         //DENTRO DEL MASTER DEBEN IR LAS INICIALIZACIONES DE VECTORES, Y LA LÓGICA DE DISTRIBUCIÓN
-        master();
+        master(N, cantProcesos);
     }
     else{
         //SOLO RECIBE POR PARÁMETROS EN LOS MENSAJES SU PORCIÓN ASIGNADA DEL VECTOR, COMUNICACIÓN CONSTANTE CON EL MASTER
-        slave();
+        slave(N, cantProcesos, miID);
     }
 
     MPI_FINALIZE();
     return (0);
+}
+
+void master(int N, int cantProcesos){
+    
+
 }
 /*
 Adaptar esto dentro del master, ya que es el que hará de hilo main para lo que es la inicialización, carga y dirección de los vectores

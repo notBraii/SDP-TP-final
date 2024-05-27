@@ -11,10 +11,6 @@ int Nlong,Thilos;
 int *flagDif;
 pthread_barrier_t barrera;
 
-void *taskThread(void *arg); // prototipo de funcion principal de cada hilo
-void mergeParalelo(int id, int** ptrVec, int** ptrVecTemp);
-
-
 void ordenar_paralelo(int **Vec_1, int **Vec_2, int **Vec_Temp, int N_long, int T_hilos, int* flag_diferencia){
     // copio los valores al contexto de la libreria, con memoria compartida
     Vec1=*Vec_1;  Vec2=*Vec_2;  VecTemp=*Vec_Temp;    Nlong=N_long;    Thilos=T_hilos; flagDif=flag_diferencia;
