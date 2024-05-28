@@ -8,7 +8,7 @@
 //          Para obtener el resultado al final de cada comparación del proceso se hace una reducción buscando el valor máximo de las diferencias encontradas.
 
 // compilar con :
-//          gcc -pthread -o paralelo paralelo.c utils/simple_init.c utils/check.c utils/ordenar_secuencial.c utils/ordenar_paralelo.c -lm
+//          mpicc -o distribuido distribuido.c utils/simple_init.c utils/ordenar_secuencial.c utils/check.c utils/ordenar_distribuido.c -lm
 // ejecutar (2^20 datos, 4 hilos, 0 errores insertados) con :
 //          ./paralelo 20 4 0
 

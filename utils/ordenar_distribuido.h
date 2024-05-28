@@ -4,8 +4,8 @@
 #define MASTER_ID 0
 
 #include <mpi.h>
+#include "check.h"
 #include "simple_init.h"
-#include "ordenar_paralelo.h" //Ante la duda
 #include "ordenar_secuencial.h" //Ante la duda
 
 // #define CHECK        // bandera para agregar ver los chequeos internos del short

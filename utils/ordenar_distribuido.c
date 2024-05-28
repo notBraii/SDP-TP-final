@@ -51,7 +51,7 @@ void master(int N, int K, int cantProcesos){
     for (int intervalProcesoActivo = 2; intervalProcesoActivo <= cantProcesos; intervalProcesoActivo *=2){
     
         //Espera a recibir el subvector de la derecha en la posición correspondiente
-        MPI_Recv(V1 + BLOCK_SIZE * (intervalProcesoActivo/2), tamañoBloque, MPI_INT, intervalProcesoActivo/2, 1, MPI_COMM_WORLD);
+        MPI_Recv(V1 + BLOCK_SIZE * (intervalProcesoActivo/2), tamañoBloque, MPI_INT, intervalProcesoActivo/2, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
         //Hace el merge con su porción        
         mergeBlocksToOut(V1,Vtemp,0, BLOCK_SIZE * (intervalProcesoActivo/2));
@@ -76,7 +76,7 @@ void master(int N, int K, int cantProcesos){
     for (int intervalProcesoActivo = 2; intervalProcesoActivo <= cantProcesos; intervalProcesoActivo *=2){
     
         //Espera a recibir el subvector de la derecha en la posición correspondiente
-        MPI_Recv(V2 + BLOCK_SIZE * (intervalProcesoActivo/2), tamañoBloque, MPI_INT, intervalProcesoActivo/2, 1, MPI_COMM_WORLD);
+        MPI_Recv(V2 + BLOCK_SIZE * (intervalProcesoActivo/2), tamañoBloque, MPI_INT, intervalProcesoActivo/2, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
         //Hace el merge con su porción        
         mergeBlocksToOut(V2,Vtemp,0, BLOCK_SIZE * (intervalProcesoActivo/2));
@@ -96,7 +96,7 @@ void master(int N, int K, int cantProcesos){
     int diferencia = 0;
     int diferenciaGlobal;
     for (int i=0; (i < tamañoBloque); i++){
-        if(vec1[i] != vec2[i]){
+        if(V1[i] != V2[i]){
             diferencia++;
             break;
         }
@@ -157,7 +157,7 @@ void slave(int N, int cantProcesos, int miID){
         //Si es el proceso que trabaja recibe el vector contiguo y trabaja
         if((miID % intervalProcesoActivo) == 0){
             //Espera a recibir el subvector de la derecha en la posición correspondiente
-            MPI_Recv(V1 + BLOCK_SIZE * (intervalProcesoActivo/2), tamañoBloque, MPI_INT, intervalProcesoActivo/2, 1, MPI_COMM_WORLD);
+            MPI_Recv(V1 + BLOCK_SIZE * (intervalProcesoActivo/2), tamañoBloque, MPI_INT, intervalProcesoActivo/2, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
             //Hace el merge con su porción        
             mergeBlocksToOut(V1,Vtemp,0, BLOCK_SIZE * (intervalProcesoActivo/2));
@@ -190,7 +190,7 @@ void slave(int N, int cantProcesos, int miID){
         //Si es el proceso que trabaja recibe el vector contiguo y trabaja
         if((miID % intervalProcesoActivo) == 0){
             //Espera a recibir el subvector de la derecha en la posición correspondiente
-            MPI_Recv(V2 + BLOCK_SIZE * (intervalProcesoActivo/2), tamañoBloque, MPI_INT, intervalProcesoActivo/2, 1, MPI_COMM_WORLD);
+            MPI_Recv(V2 + BLOCK_SIZE * (intervalProcesoActivo/2), tamañoBloque, MPI_INT, intervalProcesoActivo/2, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
             //Hace el merge con su porción        
             mergeBlocksToOut(V2,Vtemp,0, BLOCK_SIZE * (intervalProcesoActivo/2));
@@ -217,7 +217,7 @@ void slave(int N, int cantProcesos, int miID){
     int diferencia = 0;
     int diferenciaGlobal;
     for (int i=0; (i < tamañoBloque); i++){
-        if(vec1[i] != vec2[i]){
+        if(V1[i] != V2[i]){
             diferencia++;
             break;
         }
