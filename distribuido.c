@@ -3,17 +3,13 @@
 #include "utils/ordenar_distribuido.h"
 
 
-#define MASTER 0
-// Variables
+#define MASTER_ID 0
+
+//Prototipo
+void extraerParamsMPI(int argc, char* argv[],int *N, int*K);
 /*
-int N;                   // Tamaño del vector
-int T;                   // Cantidad de hilos
-int K;                   // Cantidad de errores
 int flag_diferencia = 0; // flag deteccion de diferencias
-
 */
-
-//Prototipos
 
 int main(int argc, char* argv[]){
     
@@ -26,54 +22,53 @@ int main(int argc, char* argv[]){
     MPI_Comm_rank(MPI_COMM_WORLD, &miID);
     MPI_Comm_size(MPI_COMM_WORLD, &cantProcesos);
 
-    extraerParams(argc, argv, &N, &K);
+    extraerParamsMPI(argc, argv, &N, &K);
 
-    if(miID == MASTER){
+    if(miID == MASTER_ID){
         //DENTRO DEL MASTER DEBEN IR LAS INICIALIZACIONES DE VECTORES, Y LA LÓGICA DE DISTRIBUCIÓN
-        master(N, cantProcesos);
+        master(N, K, cantProcesos);
     }
     else{
         //SOLO RECIBE POR PARÁMETROS EN LOS MENSAJES SU PORCIÓN ASIGNADA DEL VECTOR, COMUNICACIÓN CONSTANTE CON EL MASTER
         slave(N, cantProcesos, miID);
     }
 
-    MPI_FINALIZE();
+    MPI_Finalize();
     return (0);
 }
 
-void master(int N, int cantProcesos){
-    
+void extraerParamsMPI(int argc, char* argv[],int *N, int*K){
+    if (argc < 2) {
+        printf("Debe especificar la potencia NN (entre 1..31) \n");
+        printf("puede especificar K diferencias entre vectores \n");
+        MPI_Finalize();
+        exit(1);
+    }
 
+    *N = atoi(argv[1]);
+
+    if (*N <= 1) {
+        printf("N debe ser positivo\n");
+        MPI_Finalize();
+        exit(2);
+    }else
+        if( *N>=32){
+            printf("debe ingresar la potencia de N menor a 32");
+            MPI_Finalize();
+            exit(3);
+        }
+
+  	*N = pow(2,*N);
+    printf("\t - Tamaño del vector ingresado %d \n",*N);
+  	
+  	if(argc==3){
+        *K = atoi(argv[2]);
+        if(*K<0){
+            printf("K debe ser positivo\n");
+            MPI_Finalize();
+            exit(4);
+        }
+
+        printf("\t - %d errores insertados en vector 2 \n \n",*K);
+    }
 }
-/*
-Adaptar esto dentro del master, ya que es el que hará de hilo main para lo que es la inicialización, carga y dirección de los vectores
-    // Reserva de memoria
-    V1 = (int*) malloc(N * sizeof(int));
-    V2 = (int*) malloc(N * sizeof(int));
-    Vtemp = (int*) malloc(N * sizeof(int));
-
-
-    inicializarVectors(V1,V2,N,K);
-    double t0 = dwalltime();
-
-    ordenar_paralelo(&V1,&V2,&Vtemp,N,T,&flag_diferencia);
-
-    // obtiene el tiempo de ejecucion de la tarea, y la imprime
-    printf("Para N:%d, T:%d , tardo %f segundos\n", N,T, dwalltime()- t0);
-
-    // imprime el resultado de si los vectores son iguales o distintos
-    if (flag_diferencia) printf("\n \t - Hay diferencia entre los vectores \n");
-    else  printf("\n \t - Los vectores son iguales \n");
-
-    // chequear ambos vectores 
-    printf("el Vector1: %s\n", orderCheck(V1, 0, N) ? "esta ordenado correctamente": " ");
-    printf("el Vector2: %s\n", orderCheck(V2, 0, N) ? "esta ordenado correctamente": " ");
-
-    free(V1);
-    free(V2);
-    free(Vtemp);
-    return 0;
-}
-
-*/
-//
