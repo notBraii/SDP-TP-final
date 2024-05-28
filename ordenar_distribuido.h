@@ -11,9 +11,6 @@
 // #define CHECK        // bandera para agregar ver los chequeos internos del short
 // #include "check.h"
 
-
-void extraerParamsMPI(int argc, char* argv[],int *N, int*K);
-
 void master(int N, int K, int cantProcesos);
 
 //Tarea que realizan el resto de las computadoras

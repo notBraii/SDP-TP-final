@@ -110,8 +110,8 @@ void slave(int N, int cantProcesos, int miID){
     int *V1;                 // Arreglo 1 con valores
     int *V2;                 // Arreglo 2 con valores
     int *Vtemp;              // Arreglo temporal para ordenar
-
-    int tamañoBloque = N/cantProcesos;
+    int enviarVector = 0;
+    int tamañoBloque = BLOCK_SIZE;
     
     // Reserva de memoria. Contempla para el momento de hacer el merge, la cantidad máxima de valores que puede tener es de N/2
     V1 = (int*) malloc(sizeof(int) * N/2);
@@ -131,25 +131,79 @@ void slave(int N, int cantProcesos, int miID){
     
     iterativeSortSwap(&V1, &Vtemp, 0, tamañoBloque);
 
-    MPI_Barrier(MPI_COMM_WORLD);
+    //MPI_Barrier(MPI_COMM_WORLD);
     //For por niveles 
-    for(){
-        if(){
-            //ESpera a que le llegue el pedazo de vector contiguo
-            //trabaja (hace merge)
+     for (int intervalProcesoActivo = 2; intervalProcesoActivo <= cantProcesos; intervalProcesoActivo *=2){
+        
+        //Si es el proceso que trabaja recibe el vector contiguo y trabaja
+        if((miID % intervalProcesoActivo) == 0){
+            //Espera a recibir el subvector de la derecha en la posición correspondiente
+            MPI_Recv(V1 + BLOCK_SIZE * (intervalProcesoActivo/2), tamañoBloque, MPI_INT, intervalProcesoActivo/2, 1, MPI_COMM_WORLD);
+
+            //Hace el merge con su porción        
+            mergeBlocksToOut(V1,Vtemp,0, BLOCK_SIZE * (intervalProcesoActivo/2));
+
+            //Se invierten los punteros para tener en V1 el vector actualizado
+            int* vect=V1;
+            V1=Vtemp;
+            Vtemp=vect;
         }
         else{
-            //envia su pedazo de vector al proceso correspondiente
-            //MPI_Send (V + posContigua);
-            //break;
+            //if(!enviarVector){
+                MPI_Send(V1,tamañoBloque * (intervalProcesoActivo/2), MPI_INT, miID -1, 1, MPI_COMM_WORLD);    
+            //    enviarVector++;
+            //}
+            break;
         }
-        //finaliza
     }
+    
+    //Se repite para el vector 2
     MPI_Scatter(NULL, 0, MPI_INT,           //Pointer to data, length, type
-              V1, tamañoBloque, MPI_INT,    //Pointer to data received, length, type
+              V2, tamañoBloque, MPI_INT,    //Pointer to data received, length, type
               MASTER_ID, MPI_COMM_WORLD);
     
     iterativeSortSwap(&V2, &Vtemp, 0, tamañoBloque);
+
+    //MPI_Barrier(MPI_COMM_WORLD);
+    //For por niveles 
+     for (int intervalProcesoActivo = 2; intervalProcesoActivo <= cantProcesos; intervalProcesoActivo *=2){
+        
+        //Si es el proceso que trabaja recibe el vector contiguo y trabaja
+        if((miID % intervalProcesoActivo) == 0){
+            //Espera a recibir el subvector de la derecha en la posición correspondiente
+            MPI_Recv(V2 + BLOCK_SIZE * (intervalProcesoActivo/2), tamañoBloque, MPI_INT, intervalProcesoActivo/2, 1, MPI_COMM_WORLD);
+
+            //Hace el merge con su porción        
+            mergeBlocksToOut(V2,Vtemp,0, BLOCK_SIZE * (intervalProcesoActivo/2));
+
+            //Se invierten los punteros para tener en V1 el vector actualizado
+            int* vect=V2;
+            V2=Vtemp;
+            Vtemp=vect;
+        }
+        else{
+            //if(!enviarVector){
+                MPI_Send(V2,tamañoBloque * (intervalProcesoActivo/2), MPI_INT, miID -1, 1, MPI_COMM_WORLD);    
+            //    enviarVector++;
+            //}
+            break;
+        }
+        
+        //Compara su porción de vector
+
+        MPI_Scatter(NULL, 0, MPI_INT, V1, tamañoBloque, MPI_INT, MASTER_ID, MPI_COMM_WORLD);
+        MPI_Scatter(NULL, 0, MPI_INT, V2, tamañoBloque, MPI_INT, MASTER_ID, MPI_COMM_WORLD);
+
+
+        
+        for (int i=0; (i < tamañoBloque)&&(!()); i++){
+            if(vec1[i] != vec2[i]){
+                //*flag_diference = 1;
+                break;
+            }
+        }
+
+    }
 }
 
 
