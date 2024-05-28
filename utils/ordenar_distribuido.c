@@ -79,24 +79,15 @@ void master(int N, int K, int cantProcesos){
     
     //Se repite para el vector 2
     // Master envia bloques a cada proceso incluido el mismo
-    MPI_Scatter(V2, tamañoBloque, MPI_INT, //Pointer to data, length, type
-              V2, tamañoBloque, MPI_INT, //Pointer to data received, length, type
-              MASTER_ID, MPI_COMM_WORLD);
+    MPI_Scatter(V2, tamañoBloque, MPI_INT, V2, tamañoBloque, MPI_INT, MASTER_ID, MPI_COMM_WORLD);
 
-    // Ordena su porción de vector (recordar que en todos los procesos, el pedazo de vector que le toca arranca en 0)
     iterativeSortSwap(&V2, &Vtemp, 0, tamañoBloque);
 
-    // El master siempre trabaja
-    //Para este caso se trabaja con el proceso contiguo a la derecha, respetando el intervalo de procesos activos
     for (int intervalProcesoActivo = 2; intervalProcesoActivo <= cantProcesos; intervalProcesoActivo *=2){
     
-        //Espera a recibir el subvector de la derecha en la posición correspondiente
         MPI_Recv(V2 + BLOCK_SIZE * (intervalProcesoActivo/2), tamañoBloque*intervalProcesoActivo/2, MPI_INT, intervalProcesoActivo/2, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-        //Hace el merge con su porción        
         mergeBlocksToOut(V2,Vtemp,0, BLOCK_SIZE * (intervalProcesoActivo/2));
 
-        //Se invierten los punteros para tener en V2 el vector actualizado
         int* vect=V2;
         V2=Vtemp;
         Vtemp=vect;

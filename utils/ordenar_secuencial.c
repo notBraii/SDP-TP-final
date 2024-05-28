@@ -1,5 +1,6 @@
 
 #include "ordenar_secuencial.h"
+//#define WO_FUNCTION
 
 void iterativeSort(int* vec, int* tempvec, int length) {
   int indice;
@@ -82,11 +83,36 @@ void iterativeSortSwap(int** prtVec, int** ptrTempvec,int offset, int length) {
             vec[indice + 1] = temp;
         }
     }
-    
     //Mezcla incrementando la longitud de los bloques
     for (int blockSize = 2; blockSize <= length / 2; blockSize *= 2) {
         for (int indice = 0; indice < length - 1; indice += (blockSize * 2)) {
             mergeBlocksToOut(vec, vecOut, indice, blockSize);
+#ifdef WO_FUNCTION
+            int *firstBlockPtr = vec + indice;
+            int* secondBlockPtr = vec + indice + blockSize;
+
+            //vecOut = vecOut + offset; // muevo los punteros locales para trabajar en sona del vector correcta
+
+            // Indices para recorrer vectores
+            int firstBlockIndex = 0;
+            int secondBlockIndex = 0;
+            int tempIndex = 0;
+
+            // mientras ningun indice llegue al final / compara y guarda el menor
+            while (firstBlockIndex < blockSize && secondBlockIndex < blockSize) {
+                if (firstBlockPtr[firstBlockIndex] <= secondBlockPtr[secondBlockIndex]) {
+                    vecOut[indice + tempIndex++] = firstBlockPtr[firstBlockIndex++];
+                } else {
+                    vecOut[indice + tempIndex++] = secondBlockPtr[secondBlockIndex++];
+                }
+            }
+            while (firstBlockIndex < blockSize) {
+            vecOut[indice + tempIndex++] = firstBlockPtr[firstBlockIndex++];
+            }
+            while (secondBlockIndex < blockSize) {
+            vecOut[indice + tempIndex++] = secondBlockPtr[secondBlockIndex++];
+            }
+#endif
         }
         
         //por cada nivel de ordenacion permuta los punteros
@@ -96,8 +122,8 @@ void iterativeSortSwap(int** prtVec, int** ptrTempvec,int offset, int length) {
     }
     // al finalizar el algoritmo, guarda el estado de los punteros de trabajo en los punteros de entrada
     if(offset==0){
-      *prtVec=vec;
-      *ptrTempvec=vecOut;
+        *prtVec=vec;
+        *ptrTempvec=vecOut;
     }
 }
 
