@@ -9,8 +9,8 @@
 
 // compilar con :
 //          mpicc -o distribuido distribuido.c utils/simple_init.c utils/ordenar_secuencial.c utils/check.c utils/ordenar_distribuido.c -lm
-// ejecutar (2^20 datos, 4 hilos, 0 errores insertados) con :
-//          ./paralelo 20 4 0
+// ejecutar (2^20 datos, 4 procesos, 0 errores insertados) con :
+//          mpirun -np 4 distribuido 20 0
 
 // bibliotecas
 #include "utils/simple_init.h"                  // extraerParamsNTK(), inicializarVectors(), dwalltime()
@@ -21,9 +21,6 @@
 
 //Prototipo
 void extraerParamsMPI(int argc, char* argv[],int *N, int*K, int miID);
-/*
-int flag_diferencia = 0; // flag deteccion de diferencias
-*/
 
 int main(int argc, char* argv[]){
     
@@ -39,17 +36,16 @@ int main(int argc, char* argv[]){
     extraerParamsMPI(argc, argv, &N, &K, miID);
 
     if(miID == MASTER_ID){
-        //DENTRO DEL MASTER DEBEN IR LAS INICIALIZACIONES DE VECTORES, Y LA LÓGICA DE DISTRIBUCIÓN
         master(N, K, cantProcesos);
     }
     else{
-        //SOLO RECIBE POR PARÁMETROS EN LOS MENSAJES SU PORCIÓN ASIGNADA DEL VECTOR, COMUNICACIÓN CONSTANTE CON EL MASTER
         slave(N, cantProcesos, miID);
     }
 
     MPI_Finalize();
     return (0);
 }
+
 
 void extraerParamsMPI(int argc, char* argv[],int *N, int*K, int miID){
     if (argc < 2) {

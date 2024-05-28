@@ -6,14 +6,10 @@
 #include <mpi.h>
 #include "check.h"
 #include "simple_init.h"
-#include "ordenar_secuencial.h" //Ante la duda
-
-// #define CHECK        // bandera para agregar ver los chequeos internos del short
-// #include "check.h"
+#include "ordenar_secuencial.h"
 
 void master(int N, int K, int cantProcesos);
 
-//Tarea que realizan el resto de las computadoras
 void slave(int N, int cantProcesos, int miID); 
 
 #endif
