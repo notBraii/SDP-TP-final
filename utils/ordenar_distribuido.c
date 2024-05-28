@@ -1,7 +1,7 @@
 #include "ordenar_distribuido.h"
 
 #define BLOCK_SIZE (N/cantProcesos)
-
+//#define DEBUG
 // copia de las variables del main
 //int Nglobal,cantProcesosGlobal;
 
@@ -25,6 +25,11 @@ void master(int N, int K, int cantProcesos){
 
     inicializarVectors(V1,V2,N,K);
 
+    #ifdef DEBUG
+        verVector(V1, N);
+        verVector(V2, N);
+    #endif
+
     MPI_Request request;
     MPI_Status status;
 
@@ -45,17 +50,34 @@ void master(int N, int K, int cantProcesos){
 
     // Ordena su porción de vector (recordar que en todos los procesos, el pedazo de vector que le toca arranca en 0)
     iterativeSortSwap(&V1, &Vtemp, 0, tamañoBloque);
-
+    #ifdef DEBUG
+        printf("Proceso: %d termina su parte de mergesort.\n", MASTER_ID);
+        verVector(V1, tamañoBloque);
+    #endif
     // El master siempre trabaja
     //Para este caso se trabaja con el proceso contiguo a la derecha, respetando el intervalo de procesos activos
     for (int intervalProcesoActivo = 2; intervalProcesoActivo <= cantProcesos; intervalProcesoActivo *=2){
-    
+        #ifdef DEBUG
+            printf("NIvel de iteración: %d.\n", intervalProcesoActivo);    
+            printf("Proceso: %d espera subvector del proceso contiguo: %d para merge.\n", MASTER_ID, intervalProcesoActivo/2);
+        #endif
+        
         //Espera a recibir el subvector de la derecha en la posición correspondiente
-        MPI_Recv(V1 + BLOCK_SIZE * (intervalProcesoActivo/2), tamañoBloque, MPI_INT, intervalProcesoActivo/2, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(V1 + BLOCK_SIZE * (intervalProcesoActivo/2), tamañoBloque*intervalProcesoActivo/2, MPI_INT, intervalProcesoActivo/2, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+        #ifdef DEBUG
+            printf("Proceso: %d recibe subvector del proceso contiguo: %d para merge.\n", MASTER_ID, intervalProcesoActivo/2);
+            verVector(V1, tamañoBloque*intervalProcesoActivo);
+        #endif
 
         //Hace el merge con su porción        
         mergeBlocksToOut(V1,Vtemp,0, BLOCK_SIZE * (intervalProcesoActivo/2));
         
+        #ifdef DEBUG
+            printf("Proceso: %d termina su parte de merge.\n", MASTER_ID);
+            verVector(Vtemp, tamañoBloque*intervalProcesoActivo);
+        #endif
+
         //Se invierten los punteros para tener en V1 el vector actualizado
         int* vect=V1;
         V1=Vtemp;
@@ -76,7 +98,7 @@ void master(int N, int K, int cantProcesos){
     for (int intervalProcesoActivo = 2; intervalProcesoActivo <= cantProcesos; intervalProcesoActivo *=2){
     
         //Espera a recibir el subvector de la derecha en la posición correspondiente
-        MPI_Recv(V2 + BLOCK_SIZE * (intervalProcesoActivo/2), tamañoBloque, MPI_INT, intervalProcesoActivo/2, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(V2 + BLOCK_SIZE * (intervalProcesoActivo/2), tamañoBloque*intervalProcesoActivo/2, MPI_INT, intervalProcesoActivo/2, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
         //Hace el merge con su porción        
         mergeBlocksToOut(V2,Vtemp,0, BLOCK_SIZE * (intervalProcesoActivo/2));
@@ -150,15 +172,32 @@ void slave(int N, int cantProcesos, int miID){
     
     iterativeSortSwap(&V1, &Vtemp, 0, tamañoBloque);
 
+     #ifdef DEBUG
+        printf("Proceso: %d termina su parte de mergesort.\n", miID);
+        verVector(V1, tamañoBloque);
+    #endif
+    
     //MPI_Barrier(MPI_COMM_WORLD);
     //For por niveles 
     for (int intervalProcesoActivo = 2; intervalProcesoActivo <= cantProcesos; intervalProcesoActivo *=2){
         
+        #ifdef DEBUG
+            printf("NIvel de iteración: %d.\n", intervalProcesoActivo);    
+            printf("El proceso: %d espera ver qué hacer:\n", miID);
+        #endif
+
         //Si es el proceso que trabaja recibe el vector contiguo y trabaja
         if((miID % intervalProcesoActivo) == 0){
-            //Espera a recibir el subvector de la derecha en la posición correspondiente
-            MPI_Recv(V1 + BLOCK_SIZE * (intervalProcesoActivo/2), tamañoBloque, MPI_INT, intervalProcesoActivo/2, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
+            #ifdef DEBUG
+                printf("Proceso: %d espera subvector del proceso contiguo: %d para merge.\n", miID, miID + intervalProcesoActivo/2);
+            #endif
+            //Espera a recibir el subvector de la derecha en la posición correspondiente
+            MPI_Recv(V1 + BLOCK_SIZE * (intervalProcesoActivo/2), tamañoBloque*intervalProcesoActivo/2, MPI_INT, miID  + intervalProcesoActivo/2, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            #ifdef DEBUG
+                printf("Proceso: %d recibe subvector del proceso contiguo: %d para merge.\n", miID, intervalProcesoActivo/2);
+                verVector(V1, tamañoBloque*intervalProcesoActivo);
+            #endif
             //Hace el merge con su porción        
             mergeBlocksToOut(V1,Vtemp,0, BLOCK_SIZE * (intervalProcesoActivo/2));
 
@@ -168,8 +207,11 @@ void slave(int N, int cantProcesos, int miID){
             Vtemp=vect;
         }
         else{
+             #ifdef DEBUG
+                printf("Proceso: %d ENVIA subvector al proceso contiguo: %d para merge.\n", miID, miID  - intervalProcesoActivo/2);
+            #endif
             //if(!enviarVector){
-                MPI_Send(V1,tamañoBloque * (intervalProcesoActivo/2), MPI_INT, miID -1, 1, MPI_COMM_WORLD);    
+                MPI_Send(V1,tamañoBloque * (intervalProcesoActivo/2), MPI_INT, miID - intervalProcesoActivo/2, 1, MPI_COMM_WORLD);
             //    enviarVector++;
             //}
             break;
@@ -190,7 +232,7 @@ void slave(int N, int cantProcesos, int miID){
         //Si es el proceso que trabaja recibe el vector contiguo y trabaja
         if((miID % intervalProcesoActivo) == 0){
             //Espera a recibir el subvector de la derecha en la posición correspondiente
-            MPI_Recv(V2 + BLOCK_SIZE * (intervalProcesoActivo/2), tamañoBloque, MPI_INT, intervalProcesoActivo/2, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Recv(V2 + BLOCK_SIZE * (intervalProcesoActivo/2), tamañoBloque*intervalProcesoActivo/2, MPI_INT, miID  + intervalProcesoActivo/2, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
             //Hace el merge con su porción        
             mergeBlocksToOut(V2,Vtemp,0, BLOCK_SIZE * (intervalProcesoActivo/2));
@@ -202,7 +244,7 @@ void slave(int N, int cantProcesos, int miID){
         }
         else{
             //if(!enviarVector){
-                MPI_Send(V2,tamañoBloque * (intervalProcesoActivo/2), MPI_INT, miID -1, 1, MPI_COMM_WORLD);    
+                MPI_Send(V2,tamañoBloque * (intervalProcesoActivo/2), MPI_INT, miID - intervalProcesoActivo/2, 1, MPI_COMM_WORLD);
             //    enviarVector++;
             //}
             break;
