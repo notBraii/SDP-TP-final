@@ -1,9 +1,9 @@
 
 
 #include "ordenar_paralelo.h"
-#define ELEMENTS_N_BY_THREAD (Nlong/Thilos)
-#define OFFSET_N_ID_BY_THREAD (id*(Nlong/Thilos))
-#define BLOCKSIZE_PORTION_BY_THREAD (porciones*(Nlong/(Thilos*2)))
+#define ELEMENTS_N_PER_THREAD (Nlong/Thilos)
+#define OFFSET_N_ID_PER_THREAD (id*(Nlong/Thilos))
+#define BLOCKSIZE_PORTION_PER_THREAD (intervalTActivo*(Nlong/(Thilos*2)))
 
 
 int *Vec1,*Vec2,*VecTemp; // copia de las variables del main
@@ -43,16 +43,17 @@ void *taskThread(void *arg) {
     mergeParalelo(id,&Vec2,&VecTemp);
 
 // todos los hilos comparan un pedazo de los vectores, y guardan resultado en flag_diferencia=1
-    compararVec(Vec1,Vec2, OFFSET_N_ID_BY_THREAD, ELEMENTS_N_BY_THREAD,flagDif); 
+    compararVec(Vec1,Vec2, OFFSET_N_ID_PER_THREAD, ELEMENTS_N_PER_THREAD,flagDif); 
 
     pthread_exit(NULL);
 }
 
+//Realiza el merge pasando por referencia los vectores, swapeando los punteros para evitar múltiples reasignaciones de valor
 void mergeParalelo(int id, int** ptrVec, int** ptrVecTemp){
-    int offsetID=OFFSET_N_ID_BY_THREAD;
+    int offsetID=OFFSET_N_ID_PER_THREAD;
 
 // Etapa 1 - cada Hilo ordena 1 segmento del vector
-    iterativeSortSwap(ptrVec,ptrVecTemp,offsetID , ELEMENTS_N_BY_THREAD );
+    iterativeSortSwap(ptrVec,ptrVecTemp,offsetID , ELEMENTS_N_PER_THREAD );
 
 // Etapa 2 - embudo de ordenamiento
     pthread_barrier_wait(&barrera);
@@ -61,10 +62,10 @@ void mergeParalelo(int id, int** ptrVec, int** ptrVecTemp){
     int* vecOut= *ptrVecTemp;
 
     //Se combinan vectores contiguos
-    for (int porciones=2; porciones <= Thilos; porciones *= 2){
-        //Si el id mod porciones es 0, el hilo trabaja
-        if (id % porciones == 0){
-            mergeBlocksToOut(vec, vecOut,offsetID, BLOCKSIZE_PORTION_BY_THREAD); //ordeno 1 nivel
+    for (int intervalTActivo=2; intervalTActivo <= Thilos; intervalTActivo *= 2){
+        //Si el id mod intervalTActivo es 0, el hilo trabaja
+        if (id % intervalTActivo == 0){
+            mergeBlocksToOut(vec, vecOut,offsetID, BLOCKSIZE_PORTION_PER_THREAD); //ordeno 1 nivel
             int* vect=vecOut;// invierto los vectores de trabajo
             vecOut=vec;
             vec=vect;
