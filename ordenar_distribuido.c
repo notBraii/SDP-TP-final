@@ -92,13 +92,32 @@ void master(int N, int K, int cantProcesos){
     MPI_Scatter(V1, tamañoBloque, MPI_INT, V1, tamañoBloque, MPI_INT, MASTER_ID, MPI_COMM_WORLD);
     MPI_Scatter(V2, tamañoBloque, MPI_INT, V2, tamañoBloque, MPI_INT, MASTER_ID, MPI_COMM_WORLD);
 
-    for (int i=0; (i < tamañoBloque)&&(!()); i++){
+
+    int diferencia = 0;
+    int diferenciaGlobal;
+    for (int i=0; (i < tamañoBloque); i++){
         if(vec1[i] != vec2[i]){
-            //*flag_diference = 1;
+            diferencia++;
             break;
         }
     }
 
+    MPI_Reduce(&diferencia, &diferenciaGlobal, 1, MPI_INT, MPI_MAX, MASTER_ID, MPI_COMM_WORLD);
+
+    // Al obtener el resultado de la comparación, obtiene el tiempo de ejecucion de la tarea y la imprime
+
+    printf("Para N:%d, cantProcesos:%d , tardo %f segundos\n", N,cantProcesos, dwalltime()- t0);
+
+    if (diferenciaGlobal) printf("\n \t - Hay diferencia entre los vectores \n");
+    else  printf("\n \t - Los vectores son iguales \n");
+
+    // chequear ambos vectores 
+    printf("el Vector1: %s\n", orderCheck(V1, 0, N) ? "esta ordenado correctamente": " ");
+    printf("el Vector2: %s\n", orderCheck(V2, 0, N) ? "esta ordenado correctamente": " ");
+
+    free(V1);
+    free(V2);
+    free(Vtemp);
 }
 
 /**Operaciones del worker/slave
@@ -133,7 +152,7 @@ void slave(int N, int cantProcesos, int miID){
 
     //MPI_Barrier(MPI_COMM_WORLD);
     //For por niveles 
-     for (int intervalProcesoActivo = 2; intervalProcesoActivo <= cantProcesos; intervalProcesoActivo *=2){
+    for (int intervalProcesoActivo = 2; intervalProcesoActivo <= cantProcesos; intervalProcesoActivo *=2){
         
         //Si es el proceso que trabaja recibe el vector contiguo y trabaja
         if((miID % intervalProcesoActivo) == 0){
@@ -188,25 +207,30 @@ void slave(int N, int cantProcesos, int miID){
             //}
             break;
         }
-        
-        //Compara su porción de vector
-
-        MPI_Scatter(NULL, 0, MPI_INT, V1, tamañoBloque, MPI_INT, MASTER_ID, MPI_COMM_WORLD);
-        MPI_Scatter(NULL, 0, MPI_INT, V2, tamañoBloque, MPI_INT, MASTER_ID, MPI_COMM_WORLD);
-
-
-        
-        for (int i=0; (i < tamañoBloque)&&(!()); i++){
-            if(vec1[i] != vec2[i]){
-                //*flag_diference = 1;
-                break;
-            }
-        }
-
     }
+    
+    //Compara su porción de vector
+    MPI_Scatter(NULL, 0, MPI_INT, V1, tamañoBloque, MPI_INT, MASTER_ID, MPI_COMM_WORLD);
+    MPI_Scatter(NULL, 0, MPI_INT, V2, tamañoBloque, MPI_INT, MASTER_ID, MPI_COMM_WORLD);
+
+
+    int diferencia = 0;
+    int diferenciaGlobal;
+    for (int i=0; (i < tamañoBloque); i++){
+        if(vec1[i] != vec2[i]){
+            diferencia++;
+            break;
+        }
+    }
+
+    MPI_Reduce(&diferencia, &diferenciaGlobal, 1, MPI_INT, MPI_MAX, MASTER_ID, MPI_COMM_WORLD);
+
+    free(V1);
+    free(V2);
+    free(Vtemp);
 }
 
-
+/*
 void compararVecMPI(int* vec1, int* vec2, int offset, int NLength, int* flag_diference){
     vec1+=offset;
     vec2+=offset;
@@ -216,38 +240,4 @@ void compararVecMPI(int* vec1, int* vec2, int offset, int NLength, int* flag_dif
             break;
         }
     }
-}
-
-/*
-void mergeParaleloMPI(int** ptrVec, int** ptrVecTemp, int id, int tamañoBloque){
-    int offsetID=OFFSET_N_ID_BY_THREAD;
-
-// Etapa 1 - cada Hilo ordena 1 segmento del vector
-    iterativeSortSwap(ptrVec,ptrVecTemp,offsetID , tamañoBloque );
-
-// Etapa 2 - embudo de ordenamiento
-    //pthread_barrier_wait(&barrera); SE BORRA PARA MPI
-
-    int* vec= *ptrVec;// los vectores de trabajo privados
-    int* vecOut= *ptrVecTemp;
-
-    //Se combinan vectores contiguos
-    for (int porciones=2; porciones <= cantProcesos; porciones *= 2){
-        //Si el id mod porciones es 0, el hilo trabaja
-        if (id % porciones == 0){
-            mergeBlocksToOut(vec, vecOut,offsetID, porciones *(tamañoBloque/2)); //ordeno 1 nivel
-            int* vect=vecOut;// invierto los vectores de trabajo
-            vecOut=vec;
-            vec=vect;
-        }
-            //Se espera a que todos los hilos terminen de trabajar para pasar al siguiente nivel
-	    pthread_barrier_wait(&barrera);
-    }
-    if(id==0){
-        *ptrVec=vec;// guardo los vectores ordenados
-        *ptrVecTemp=vecOut;
-    }
-    pthread_barrier_wait(&barrera);
-}
-
-*/
+}*/

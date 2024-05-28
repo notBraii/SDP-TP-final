@@ -1,3 +1,17 @@
+// consigna : 
+//          verificar si 2 vectores contienen los mismos números
+// Estrategia de resolución: 
+//          ordenar ambos vectores y comparar posición a posición si estan todos los mismos números
+//          a cada proceso le toca ordenar un segmento del vector.
+//          luego algunos procesos van mezclando los resultados ordenados para mayor paralelismo.
+//          Para la comparación se sigue la misma idea: se reparten porciones de V1 y V2 a cada proceso y compara localmente
+//          Para obtener el resultado al final de cada comparación del proceso se hace una reducción buscando el valor máximo de las diferencias encontradas.
+
+// compilar con :
+//          gcc -pthread -o paralelo paralelo.c utils/simple_init.c utils/check.c utils/ordenar_secuencial.c utils/ordenar_paralelo.c -lm
+// ejecutar (2^20 datos, 4 hilos, 0 errores insertados) con :
+//          ./paralelo 20 4 0
+
 // bibliotecas
 #include "utils/simple_init.h"                  // extraerParamsNTK(), inicializarVectors(), dwalltime()
 #include "utils/ordenar_distribuido.h"
