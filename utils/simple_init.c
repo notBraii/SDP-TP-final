@@ -65,7 +65,7 @@ void extraerParams(int argc, char* argv[],int *N, int*K){
 
 //Inicializa los vectores globales con valores aleatorios iguales en ambos vectores, agregando valores diferentes en posiciones aleatorias del vector 2 según el valor del parámetro K
 void inicializarVectors(int* vec1, int* vec2, int length, int Kdiference){
-    srand(time(NULL));
+    srand(2000);
     for (int i=0; i<length; i++) { // inicializa valores aleatorios
     	vec1[i] = rand() % 10000;
     	vec2[i] = vec1[i];

@@ -1,6 +1,6 @@
 
 #include "ordenar_secuencial.h"
-//#define WO_FUNCTION
+#define WO_FUNCTION
 
 void iterativeSort(int* vec, int* tempvec, int length) {
   int indice;
@@ -86,33 +86,27 @@ void iterativeSortSwap(int** prtVec, int** ptrTempvec,int offset, int length) {
     //Mezcla incrementando la longitud de los bloques
     for (int blockSize = 2; blockSize <= length / 2; blockSize *= 2) {
         for (int indice = 0; indice < length - 1; indice += (blockSize * 2)) {
-            mergeBlocksToOut(vec, vecOut, indice, blockSize);
-#ifdef WO_FUNCTION
-            int *firstBlockPtr = vec + indice;
-            int* secondBlockPtr = vec + indice + blockSize;
-
-            //vecOut = vecOut + offset; // muevo los punteros locales para trabajar en sona del vector correcta
-
-            // Indices para recorrer vectores
-            int firstBlockIndex = 0;
-            int secondBlockIndex = 0;
-            int tempIndex = 0;
-
+   
+            int* firstBlockPtr = vec + indice;
+            int* secondBlockPtr = firstBlockPtr + blockSize;
+            int* vecOutPtr = vecOut + indice;
+            int* firstBlockPtr_end = secondBlockPtr;
+            int* secondBlockPtr_end = secondBlockPtr + blockSize;
+    
             // mientras ningun indice llegue al final / compara y guarda el menor
-            while (firstBlockIndex < blockSize && secondBlockIndex < blockSize) {
-                if (firstBlockPtr[firstBlockIndex] <= secondBlockPtr[secondBlockIndex]) {
-                    vecOut[indice + tempIndex++] = firstBlockPtr[firstBlockIndex++];
+            while (firstBlockPtr < firstBlockPtr_end && secondBlockPtr < secondBlockPtr_end) {
+                if (*firstBlockPtr <= *secondBlockPtr) {
+                    *vecOutPtr++ = *firstBlockPtr ++;
                 } else {
-                    vecOut[indice + tempIndex++] = secondBlockPtr[secondBlockIndex++];
+                    *vecOutPtr++ = *secondBlockPtr ++;
                 }
             }
-            while (firstBlockIndex < blockSize) {
-            vecOut[indice + tempIndex++] = firstBlockPtr[firstBlockIndex++];
+            while (firstBlockPtr < firstBlockPtr_end) {
+                *vecOutPtr++ = *firstBlockPtr ++;
             }
-            while (secondBlockIndex < blockSize) {
-            vecOut[indice + tempIndex++] = secondBlockPtr[secondBlockIndex++];
+            while (secondBlockPtr < secondBlockPtr_end) {
+                *vecOutPtr++ = *secondBlockPtr ++;
             }
-#endif
         }
         
         //por cada nivel de ordenacion permuta los punteros
@@ -127,31 +121,28 @@ void iterativeSortSwap(int** prtVec, int** ptrTempvec,int offset, int length) {
     }
 }
 
-void mergeBlocksToOut(int* vec, int* vecOut, int offset, int blockSize) {
-    // punteros
-    vec = vec + offset;
-    int *firstBlockPtr = vec;
-    int* secondBlockPtr = vec + blockSize;
-
-    vecOut = vecOut + offset; // muevo los punteros locales para trabajar en sona del vector correcta
-
-    // Indices para recorrer vectores
-    int firstBlockIndex = 0;
-    int secondBlockIndex = 0;
-    int tempIndex = 0;
+/**Recibe 2 bloques de numeros ordenados y los junta de forma ordenada (optimizado)
+ * 
+ * */ 
+void mergeBlocksToOut(int* vec, int* vecOut, int offset, int blockSize) { 
+    int* firstBlockPtr = vec + offset;
+    int* secondBlockPtr = firstBlockPtr + blockSize;
+    int* vecOutPtr = vecOut + offset;
+    int* firstBlockPtr_end = secondBlockPtr;
+    int* secondBlockPtr_end = secondBlockPtr + blockSize;
 
     // mientras ningun indice llegue al final / compara y guarda el menor
-    while (firstBlockIndex < blockSize && secondBlockIndex < blockSize) {
-        if (firstBlockPtr[firstBlockIndex] <= secondBlockPtr[secondBlockIndex]) {
-            vecOut[tempIndex++] = firstBlockPtr[firstBlockIndex++];
+    while (firstBlockPtr < firstBlockPtr_end && secondBlockPtr < secondBlockPtr_end) {
+        if (*firstBlockPtr <= *secondBlockPtr) {
+            *vecOutPtr++ = *firstBlockPtr ++;
         } else {
-            vecOut[tempIndex++] = secondBlockPtr[secondBlockIndex++];
+            *vecOutPtr++ = *secondBlockPtr ++;
         }
     }
-    while (firstBlockIndex < blockSize) {
-      vecOut[tempIndex++] = firstBlockPtr[firstBlockIndex++];
+    while (firstBlockPtr < firstBlockPtr_end) {
+        *vecOutPtr++ = *firstBlockPtr ++;
     }
-    while (secondBlockIndex < blockSize) {
-      vecOut[tempIndex++] = secondBlockPtr[secondBlockIndex++];
+    while (secondBlockPtr < secondBlockPtr_end) {
+        *vecOutPtr++ = *secondBlockPtr ++;
     }
 }

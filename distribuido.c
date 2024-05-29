@@ -23,7 +23,6 @@
 void extraerParamsMPI(int argc, char* argv[],int *N, int*K, int miID);
 
 int main(int argc, char* argv[]){
-    
     int miID,
         cantProcesos,
         N,
