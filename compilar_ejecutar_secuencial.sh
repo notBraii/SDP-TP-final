@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # compilar proyecto
-#gcc -o secuencial secuencial.c simple_init.c check.c ordenar_secuencial.c -lm 
 gcc -o secuencial secuencial.c utils/simple_init.c utils/check.c utils/ordenar_secuencial.c -lm
 
 # Nombre del archivo ejecutable
