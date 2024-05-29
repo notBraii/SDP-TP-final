@@ -1,6 +1,46 @@
 
 #include "simple_init.h"
 
+
+int extraerParamsMPI(int argc, char* argv[],int *N, int*K, int miID){
+    if (argc < 2) {
+        if (miID == MASTER_ID){
+            printf("Debe especificar la potencia NN (entre 1..31) \n");
+            printf("puede especificar K diferencias entre vectores \n");
+        }
+        return 1;
+    }
+
+    *N = atoi(argv[1]);
+
+    if (*N <= 1) {
+        if (miID == MASTER_ID)
+            printf("N debe ser positivo\n");
+        return 2;
+    }else
+        if( *N>=32){
+            if (miID == MASTER_ID) 
+                printf("debe ingresar la potencia de N menor a 32");
+            return 3;
+        }
+
+  	*N = pow(2,*N);
+    if (miID == MASTER_ID){
+            
+        printf("\t - Tamaño del vector ingresado %d \n",*N);    
+        if(argc==3){
+            *K = atoi(argv[2]);
+            if(*K<0){
+                printf("K debe ser positivo\n");
+                return 4;
+            }
+
+            printf("\t - %d errores insertados en vector 2 \n \n",*K);
+        }
+    }
+    return 0;
+}
+
 //Valida la cantidad de parámetros y modifica variables globales de N, T, K
 void extraerParamsNTK(int argc, char *argv[], int *Nleng, int *Threads, int *Kdiferences){
     *Kdiferences = 0;
