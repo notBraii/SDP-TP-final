@@ -22,14 +22,12 @@ void master(int N, int K, int cantProcesos){
 
     inicializarVectors(V1,V2,N,K);
 
-    MPI_Request request;
-    MPI_Status status;
+  //  MPI_Request request;
+  //  MPI_Status status;
 
     MPI_Barrier(MPI_COMM_WORLD);
 
     double t0 = dwalltime();
-
-    //mergeParaleloMPI(&V1, &Vtemp, MASTER_ID, BLOCK_SIZE, cantProcesos);
 
     // Master envia bloques a cada proceso incluido el mismo
     MPI_Scatter(V1, BlockSize, MPI_INT, //Pointer to data, length, type
@@ -113,18 +111,14 @@ void slave(int N, int cantProcesos, int miID){
     MPI_Scatter(NULL, 0, MPI_INT, V1, BlockSize, MPI_INT, MASTER_ID, MPI_COMM_WORLD);
     MPI_Scatter(NULL, 0, MPI_INT, Vtemp, BlockSize, MPI_INT, MASTER_ID, MPI_COMM_WORLD);
 
-
     int flag_diferencia = 0;
-    for (int i=0; i < BlockSize ; i++){
-        if(V1[i] != Vtemp[i]){
+    for (int i = 0; i < BlockSize; i++)
+    {
+        if (V1[i] != Vtemp[i])
+        {
             flag_diferencia++;
             break;
         }
-/*        if ( (i+miID) % cantProcesos == 0) // segun el ID, verifica la barrera global
-        {
-            MPI_Irecv() // intenta recibir datos del brodcast
-            internal_flag = check_barrier(END_FLAG);
-        }*/
     }
 
     MPI_Reduce(&flag_diferencia, NULL, 1, MPI_INT, MPI_MAX, MASTER_ID, MPI_COMM_WORLD);
