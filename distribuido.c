@@ -9,8 +9,8 @@
 
 // compilar con :
 //          mpicc -o distribuido distribuido.c utils/simple_init.c utils/ordenar_secuencial.c utils/check.c utils/ordenar_distribuido.c -lm
-// ejecutar (2^20 datos, 4 procesos, 0 errores insertados) con :
-//          mpirun -np 4 distribuido 20 0
+// ejecutar (2^20 datos, 2 procesos, 0 errores insertados) con :
+//          mpirun -np 2 distribuido 20 0
 
 // bibliotecas
 #include "utils/simple_init.h"                  // extraerParamsNTK(), inicializarVectors(), dwalltime()

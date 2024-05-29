@@ -2,7 +2,7 @@
 	 - Cantidad de hilos: 16 
 	 - 0 errores insertados en vector 2 
 
-Para N:16777216, T:16 , tardo 0.918916 segundos
+Para N:16777216, T:16 , tardo 2.512437 segundos
 
  	 - Los vectores son iguales 
 el Vector1: esta ordenado correctamente

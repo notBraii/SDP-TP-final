@@ -9,7 +9,9 @@
 #include "ordenar_secuencial.h"
 
 void master(int N, int K, int cantProcesos);
+void slave(int N, int cantProcesos, int miID);
 
-void slave(int N, int cantProcesos, int miID); 
+// proceso de ordenamiento colaborativo, cada proceso con su ID, con pasaje de mensajes
+void ordenar_distribuido(int **vec, int **vecTemp, int BlockSize, int N, int id, int cantProcesos);
 
 #endif
