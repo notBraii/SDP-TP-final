@@ -1,9 +1,0 @@
-	 - Tamaño del vector ingresado 67108864 
-	 - Cantidad de hilos: 4 
-	 - 0 errores insertados en vector 2 
-
-Para N:67108864, T:4 , tardo 5.988540 segundos
-
- 	 - Los vectores son iguales 
-el Vector1: esta ordenado correctamente
-el Vector2: esta ordenado correctamente
