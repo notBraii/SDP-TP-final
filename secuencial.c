@@ -8,7 +8,6 @@
 #include "utils/simple_init.h" // extraerParams(), inicializarVectors(), dwalltime()
 #include "utils/check.h" // verVector(), orderCheck(), compararVec()
 #include "utils/ordenar_secuencial.h" // iterativeSort() , mergeBlocks()
-#define MIN(A, B) ((A) < (B) ? (A) : (B)) // macro numero minimo
 
 // Prototipos de funcion
 

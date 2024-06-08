@@ -142,7 +142,7 @@ void ordenar_distribuido(int **vec, int **vecTemp, int BlockSize, int N, int id,
         if ((id % intervalProcesoActivo) == 0)
         {
             // Espera a recibir el subvector de la derecha en la posición correspondiente
-            MPI_Recv(*vec + offset, offset, MPI_INT, (intervalProcesoActivo / 2), 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Recv(*vec + offset, offset, MPI_INT, id + (intervalProcesoActivo / 2), 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
             // Hace el merge con su porción
             mergeBlocksToOut(*vec, *vecTemp, 0, offset);
