@@ -8,15 +8,15 @@ void verVector(int* vec,int length){
   printf("\n");
 }
 
-bool orderCheck(int* vec, int offset,int length){
+int orderCheck(int* vec, int offset,int length){
     int* vec1=vec+offset;
     for (int i=0; i < length-1; i++){
         if (vec1[i] > vec1[i+1]){
             printf("Error Ordenamiento: V[%d]:%d < V[%d]:%d \n", i+offset+1, vec1[i+1], i+offset, vec1[i]);
-            return false;
+            return 0;
         }
     }
-    return true;
+    return 1;
 }
 
 void compararVec(int* vec1, int* vec2, int offset, int length, int* flag){

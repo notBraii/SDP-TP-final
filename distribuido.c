@@ -13,12 +13,10 @@
 //          mpirun -np 2 distribuido 20 0
 
 // bibliotecas
-#include "utils/simple_init.h"              // extraerParamsMPI(), inicializarVectors(), dwalltime()
-#include "utils/ordenar_distribuido.h"      // master(), slave()
-
+#include "utils/simple_init.h"              // extraerParamsMPI()
+#include "utils/ordenar_distribuido.h"      // master(), slave(), llamado a mpi.h 
 
 #define MASTER_ID 0
-
 
 int main(int argc, char* argv[]){
     int miID,
@@ -30,7 +28,7 @@ int main(int argc, char* argv[]){
     MPI_Comm_rank(MPI_COMM_WORLD, &miID);
     MPI_Comm_size(MPI_COMM_WORLD, &cantProcesos);
 
-    int error_parametros=extraerParamsMPI(argc, argv, &N, &K, miID);
+    int error_parametros = extraerParamsMPI(argc, argv, &N, &K, miID);
     if(error_parametros){
         MPI_Finalize();
         return (error_parametros);

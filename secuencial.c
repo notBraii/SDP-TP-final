@@ -6,17 +6,17 @@
 //      ./secuencial 20 0
 
 #include "utils/simple_init.h" // extraerParams(), inicializarVectors(), dwalltime()
-#include "utils/check.h" // verVector(), orderCheck(), compararVec()
+#include "utils/check.h"    // verVector(), orderCheck(), compararVec()
 #include "utils/ordenar_secuencial.h" // iterativeSort() , mergeBlocks()
 
 // Prototipos de funcion
 
 // Variables compartidas
-int NLength; // Tamaño del vector
-int Kdif; //Cantidad de diferencias insertadas
-int *V1; //Arreglo 1 con valores
-int *V2; //Arreglo 2 con valores
-int *Vtemp; //Arreglo temporal para ordenar
+int NLength;    // Tamaño del vector
+int Kdif;       //Cantidad de diferencias insertadas
+int *V1;        //Arreglo 1 con valores
+int *V2;        //Arreglo 2 con valores
+int *Vtemp;     //Arreglo temporal para ordenar
 int flag_diferencia=0; // flag deteccion de diferencias
 
 
@@ -42,9 +42,9 @@ int main(int argc, char* argv[]){
     printf("Para N=%d, tiempo de ejecucion %f segundos \n \n", NLength, dwalltime() - t0);
 
     if (flag_diferencia)
-      printf("\t - Hay diferencia entre los vectores \n");
+        printf("\t - Hay diferencia entre los vectores \n");
     else
-      printf("\t - Los vectores son iguales \n");
+        printf("\t - Los vectores son iguales \n");
 
     // chequear ambos vectores
     printf("- el Vector1: %s\n", orderCheck(V1,0,NLength) ? "esta ordenado correctamente" : " ");

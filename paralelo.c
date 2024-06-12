@@ -11,7 +11,7 @@
 
 
 // bibliotecas
-#include "utils/simple_init.h"                  // extraerParamsNTK(), inicializarVectors(), dwalltime()
+#include "utils/simple_init.h"          // extraerParamsNTK(), inicializarVectors(), dwalltime()
 #include "utils/ordenar_paralelo.h"
 
 // Variables compartidas
@@ -25,7 +25,7 @@ int *Vtemp;              // Arreglo temporal para ordenar
 
 int main(int argc, char* argv[]){
 
-    extraerParamsNTK(argc, argv,&N,&T,&K);
+    extraerParamsNTK(argc, argv, &N, &T, &K);
 
     // Reserva de memoria
     V1 = (int*) malloc(N * sizeof(int));
@@ -33,10 +33,10 @@ int main(int argc, char* argv[]){
     Vtemp = (int*) malloc(N * sizeof(int));
 
 
-    inicializarVectors(V1,V2,N,K);
+    inicializarVectors(V1, V2, N, K);
     double t0 = dwalltime();
 
-    ordenar_paralelo(&V1,&V2,&Vtemp,N,T,&flag_diferencia);
+    ordenar_paralelo(&V1, &V2, &Vtemp, N, T, &flag_diferencia);
 
     // obtiene el tiempo de ejecucion de la tarea, y la imprime
     printf("Para N:%d, T:%d , tardo %f segundos\n", N,T, dwalltime()- t0);

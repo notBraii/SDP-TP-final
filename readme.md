@@ -10,4 +10,10 @@ que tiene dependencias las librerias custom "simple_init" , "ordenar_secuencial"
 El programa principal del proyecto paralelo y distrobuido es "-sin-definir2"
 que tiene dependencias las librerias custom "simple_init" , "ordenar_secuencial", "check" y otras
 
-el archivo "ejemplo_Ptread" es una version inestable de la solucion paralela
+***Cosas por hacer:***
+- Elaborar Readme
+- revisar comentarios ordenar_secuencial.h:
+  - Eliminar funciones sin uso
+  - Completar comentarios
+- Elaborar include y lib
+- Directorio para scripts.sh
