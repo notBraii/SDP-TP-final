@@ -7,7 +7,8 @@
         "stddef.h": "c",
         "ordenar_paralelo.h": "c",
         "simple_init.h": "c",
-        "pthread.h": "c"
+        "pthread.h": "c",
+        "stdlib.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # compilar proyecto
-mpicc -o distribuido distribuido.c utils/simple_init.c utils/ordenar_secuencial.c utils/check.c utils/ordenar_distribuido.c -lm
+mpicc -Iinclude -o distribuido distribuido.c lib/simple_init.c lib/ordenar_secuencial.c lib/check.c lib/ordenar_distribuido.c -lm
 
 # Nombre del archivo ejecutable
 ejecutable="distribuido"

@@ -8,13 +8,13 @@
 //          Para obtener el resultado al final de cada comparación del proceso se hace una reducción buscando el valor máximo de las diferencias encontradas.
 
 // compilar con :
-//          mpicc -o distribuido distribuido.c utils/simple_init.c utils/ordenar_secuencial.c utils/check.c utils/ordenar_distribuido.c -lm
+//          mpicc -Iinclude -o distribuido distribuido.c lib/simple_init.c lib/ordenar_secuencial.c lib/check.c lib/ordenar_distribuido.c -lm
 // ejecutar (2^20 datos, 2 procesos, 0 errores insertados) con :
 //          mpirun -np 2 distribuido 20 0
 
 // bibliotecas
-#include "utils/simple_init.h"              // extraerParamsMPI()
-#include "utils/ordenar_distribuido.h"      // master(), slave(), llamado a mpi.h 
+#include "simple_init.h"              // extraerParamsMPI()
+#include "ordenar_distribuido.h"      // master(), slave(), llamado a mpi.h 
 
 #define MASTER_ID 0
 

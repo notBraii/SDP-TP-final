@@ -1,13 +1,13 @@
 
 // ORDENAR 2 VECTORES Y COMPARAR SI CONTIENEN LOS MISMOS ELEMENTOS
 // compilar con
-//      gcc -o secuencial secuencial.c utils/simple_init.c utils/check.c utils/ordenar_secuencial.c -lm
+//      gcc -Iinclude -o secuencial secuencial.c lib/simple_init.c lib/check.c lib/ordenar_secuencial.c -lm
 // ejecutar (2^20 datos, 0 errores insertados) con
 //      ./secuencial 20 0
 
-#include "utils/simple_init.h" // extraerParams(), inicializarVectors(), dwalltime()
-#include "utils/check.h"    // verVector(), orderCheck(), compararVec()
-#include "utils/ordenar_secuencial.h" // iterativeSort() , mergeBlocks()
+#include "simple_init.h" // extraerParams(), inicializarVectors(), dwalltime()
+#include "check.h"    // verVector(), orderCheck(), compararVec()
+#include "ordenar_secuencial.h" // iterativeSort() , mergeBlocks()
 
 // Prototipos de funcion
 
