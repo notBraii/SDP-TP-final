@@ -13,7 +13,8 @@
 void verVector(int *v, int length);
 
 /**
- * Revisa el orden de los valores de un vector, de menor a mayor, devolviendo 1 si se comprueba su orden o 0 caso contrario
+ * Revisa el orden de los valores de un vector, de menor a mayor, devolviendo 1 si se comprueba su 
+ * orden o 0 caso contrario
  * 
  * @param vec       Vector
  * @param offset    Posición inicial del vector
@@ -26,7 +27,8 @@ int orderCheck(int *vec, int offset, int length);
  * @brief Compara que los vectores pasados sean iguales campo a campo.
  * 
  * En caso de encontrar diferencia, setea el flag en 1. Caso contrario 0.
- * Para la siguiente función se asume que el offset válido se encuentra dentro del rango de los arreglos y la longitud no excede los rangos de los mismos.
+ * Para la siguiente función se asume que el offset válido se encuentra dentro del rango de los 
+ * arreglos y la longitud no excede los rangos de los mismos.
  * 
  * @param vec1      Vector 1
  * @param vec2      Vector 2
