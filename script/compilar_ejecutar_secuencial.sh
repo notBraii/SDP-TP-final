@@ -1,7 +1,13 @@
 #!/bin/bash
 
 # compilar proyecto
-gcc -o secuencial secuencial.c utils/simple_init.c utils/check.c utils/ordenar_secuencial.c -lm
+gcc -Iinclude -o secuencial secuencial.c lib/simple_init.c lib/check.c lib/ordenar_secuencial.c -lm
+
+# Verificación de compilación
+if [ $? -ne 0 ]; then
+    echo "Error al compilar el proyecto"
+    exit 1
+fi
 
 # Nombre del archivo ejecutable
 ejecutable="./secuencial"
