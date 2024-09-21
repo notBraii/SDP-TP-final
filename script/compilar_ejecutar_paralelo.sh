@@ -1,12 +1,13 @@
 #!/bin/bash
 
 # compilar proyecto
-gcc -pthread -o paralelo paralelo.c utils/simple_init.c utils/check.c utils/ordenar_secuencial.c utils/ordenar_paralelo.c -lm
+gcc -Iinclude -pthread -o paralelo paralelo.c lib/simple_init.c lib/check.c lib/ordenar_secuencial.c utils/ordenar_paralelo.c -lm
 
 # Nombre del archivo ejecutable
 ejecutable="./paralelo"
 
 # Parámetros para cada ejecución
+# "[Datos] [Cantidad de hilos] [Cantidad de errores]"
 parametros=(
     "24 1 0"
     "24 1 1"
